@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { AtSign, Lock, LogIn } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
@@ -13,9 +14,16 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <motion.div 
+        className="w-full max-w-md"
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         {/* Login Card */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        <div 
+          className="bg-white rounded-xl shadow-lg p-8"
+        >
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-blue-700">NESCOE Hub</h1>
             <p className="text-gray-500 mt-2">Welcome back! Please sign in to your account.</p>
@@ -53,7 +61,7 @@ export default function LoginPage() {
                   Password
                 </label>
                 <Link
-                  href="/forgot-password"
+                  href="/auth/forgot-password" // Assuming this path will be created
                   className="text-sm text-blue-600 hover:underline"
                 >
                   Forgot password?
@@ -77,25 +85,29 @@ export default function LoginPage() {
 
             {/* Submit Button */}
             <div>
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 type="submit"
-                className="w-full flex justify-center items-center px-4 py-3 font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform transform hover:-translate-y-1"
+                className="w-full flex justify-center items-center px-4 py-3 font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <LogIn className="w-5 h-5 mr-2" />
                 Sign In
-              </button>
+              </motion.button>
             </div>
           </form>
 
-          {/* Sign Up Link */}
+          {/* Contact Admin Link */}
           <p className="mt-8 text-center text-sm text-gray-600">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="font-semibold text-yellow-600 hover:text-yellow-700 hover:underline">
-              Sign up here
+            Having trouble logging in?{' '}
+            <Link href="/contact-admin" // Assuming this path will be created
+             className="font-semibold text-yellow-600 hover:text-yellow-700 hover:underline">
+              Contact Admin
             </Link>
           </p>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
+
