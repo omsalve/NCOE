@@ -1,103 +1,101 @@
-import Image from "next/image";
+import React from 'react';
+import Link from 'next/link';
+import { LogIn, UserPlus, CheckCircle, Calendar, BookOpen } from 'lucide-react';
 
-export default function Home() {
+// This is the main landing page component for the NESCOE Hub.
+export default function LandingPage() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    // 60% White: Applied to the main background for a clean, spacious feel.
+    <div className="min-h-screen bg-white text-gray-800">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b border-gray-200">
+        <div className="container mx-auto flex justify-between items-center h-16 px-6">
+          {/* 30% Blue: Used for the primary branding text. */}
+          <h1 className="text-2xl font-bold text-blue-700">NESCOE Hub</h1>
+          <nav>
+            <Link 
+              href="/login" 
+              className="px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+            >
+              Login
+            </Link>
+          </nav>
         </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="pt-16">
+        {/* Hero Section */}
+        <section className="bg-white py-20 md:py-32">
+          <div className="container mx-auto text-center px-6">
+            <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 leading-tight">
+              Your Campus, <span className="text-blue-700">Connected.</span>
+            </h2>
+            <p className="mt-4 max-w-2xl mx-auto text-lg text-gray-600">
+              The official hub for NESCOE students and faculty. Access your schedule, assignments, and campus updates all in one place.
+            </p>
+            <div className="mt-8 flex justify-center gap-4">
+              <Link 
+                href="/login"
+                // 30% Blue: The primary call-to-action button.
+                className="inline-flex items-center justify-center px-6 py-3 font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 transition-transform transform hover:-translate-y-1"
+              >
+                <LogIn className="w-5 h-5 mr-2" />
+                Login to Your Account
+              </Link>
+              <Link 
+                href="/signup"
+                // 10% Yellow: The accent color for the secondary button.
+                className="inline-flex items-center justify-center px-6 py-3 font-semibold text-yellow-900 bg-yellow-400 rounded-lg shadow-md hover:bg-yellow-500 transition-transform transform hover:-translate-y-1"
+              >
+                <UserPlus className="w-5 h-5 mr-2" />
+                Create Account
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="py-20 bg-gray-50">
+          <div className="container mx-auto px-6">
+            <div className="text-center mb-12">
+              <h3 className="text-3xl font-bold text-gray-900">Everything You Need to Succeed</h3>
+              <p className="mt-2 text-gray-600">Core features designed for campus life.</p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-8 text-center">
+              <div className="p-8 bg-white rounded-xl shadow-lg">
+                <div className="inline-flex items-center justify-center w-16 h-16 mb-4 text-blue-600 bg-blue-100 rounded-full">
+                  <Calendar className="w-8 h-8" />
+                </div>
+                <h4 className="text-xl font-semibold mb-2">Personalized Schedule</h4>
+                <p className="text-gray-600">Never miss a class with a clear, up-to-date view of your daily schedule.</p>
+              </div>
+              <div className="p-8 bg-white rounded-xl shadow-lg">
+                 <div className="inline-flex items-center justify-center w-16 h-16 mb-4 text-yellow-800 bg-yellow-100 rounded-full">
+                   <BookOpen className="w-8 h-8" />
+                </div>
+                <h4 className="text-xl font-semibold mb-2">Assignment Tracking</h4>
+                <p className="text-gray-600">Stay on top of deadlines with assignment due dates and submission details.</p>
+              </div>
+              <div className="p-8 bg-white rounded-xl shadow-lg">
+                <div className="inline-flex items-center justify-center w-16 h-16 mb-4 text-blue-600 bg-blue-100 rounded-full">
+                  <CheckCircle className="w-8 h-8" />
+                </div>
+                <h4 className="text-xl font-semibold mb-2">Attendance Records</h4>
+                <p className="text-gray-600">Keep track of your attendance for all courses throughout the semester.</p>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* Footer */}
+      <footer className="bg-gray-800 text-white py-8">
+        <div className="container mx-auto text-center px-6">
+          <p>&copy; {new Date().getFullYear()} NESCOE. All Rights Reserved.</p>
+        </div>
       </footer>
     </div>
   );
 }
+
