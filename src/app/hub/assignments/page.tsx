@@ -70,3 +70,4 @@ export default function AssignmentsPage() {
     </motion.div>
   );
 }
+    
