@@ -8,6 +8,9 @@
     "start": "next start",
     "lint": "eslint"
   },
+  "prisma": {
+    "seed": "tsc prisma/seed.ts --outDir prisma/.seed && node prisma/.seed/seed.js"
+  },
   "dependencies": {
     "@prisma/client": "^6.16.3",
     "framer-motion": "^12.23.22",
@@ -29,6 +32,7 @@
     "eslint-config-next": "15.5.4",
     "prisma": "^6.16.3",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5",
     "zod": "^4.1.11"
   }
