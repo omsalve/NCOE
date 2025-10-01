@@ -1,13 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { AtSign, Lock, LogIn, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/firebase/config';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+// We no longer import anything from Firebase or AuthContext
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -15,44 +13,43 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { user, loading } = useAuth();
-
-  // Effect to redirect user if they are already logged in
-  useEffect(() => {
-    if (!loading && user) {
-      router.push('/hub/dashboard');
-    }
-  }, [user, loading, router]);
-
+  
+  // This function is now updated to call our own backend API
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
-      // Sign in the user with Firebase
-      await signInWithEmailAndPassword(auth, email, password);
-      // On success, the effect above will handle the redirect.
-      // We can also push them directly.
+      // Call the Next.js API route we will create
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Use the error message from our API, or a default one
+        throw new Error(data.error || 'Failed to sign in.');
+      }
+
+      // On success, redirect to the dashboard
       router.push('/hub/dashboard');
+      // Use router.refresh() if you want to ensure new server-side data is fetched
+      router.refresh(); 
+
     } catch (err: any) {
-      // Provide a user-friendly error message
-      setError("Failed to sign in. Please check your email and password.");
-      console.error("Firebase Auth Error:", err.message);
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
-
-  // While the auth state is loading, or if the user is logged in, don't show the form
-  if (loading || user) {
-    return (
-        <div className="flex items-center justify-center h-screen w-screen bg-white">
-            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-    );
-  }
-
+  
+  // We remove the loading state that depended on the old AuthContext
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <motion.div 
@@ -137,4 +134,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

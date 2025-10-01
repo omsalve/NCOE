@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { LogIn, UserPlus, CheckCircle, Calendar, BookOpen } from 'lucide-react';
+// NEW: Imported User and GraduationCap for the new buttons
+import { LogIn, User, GraduationCap, CheckCircle, Calendar, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 // This is the main landing page component for the NESCOE Hub.
@@ -68,21 +69,39 @@ export default function LandingPage() {
             <motion.p variants={itemVariants} className="mt-4 max-w-2xl mx-auto text-lg text-gray-600">
               The official hub for NESCOE students and faculty. Access your schedule, assignments, and campus updates all in one place.
             </motion.p>
+            
+            {/* --- MODIFIED SECTION --- */}
             <motion.div variants={itemVariants} className="mt-8 flex justify-center gap-4">
+              {/* Student Login Button */}
               <motion.div
                 whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <Link 
-                  href="/auth/login"
-                  // 30% Blue: The primary call-to-action button.
+                  href="/auth/login?role=student"
                   className="inline-flex items-center justify-center px-6 py-3 font-semibold text-white bg-blue-600 rounded-lg shadow-md"
                 >
-                  <LogIn className="w-5 h-5 mr-2" />
-                  Login to Your Account
+                  <User className="w-5 h-5 mr-2" />
+                  Student Login
+                </Link>
+              </motion.div>
+
+              {/* Faculty Login Button */}
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Link 
+                  href="/auth/login?role=faculty"
+                  className="inline-flex items-center justify-center px-6 py-3 font-semibold text-gray-800 bg-gray-200 rounded-lg shadow-md"
+                >
+                  <GraduationCap className="w-5 h-5 mr-2" />
+                  Faculty Login
                 </Link>
               </motion.div>
             </motion.div>
+            {/* --- END MODIFIED SECTION --- */}
+
           </motion.div>
         </section>
 
@@ -135,4 +154,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
