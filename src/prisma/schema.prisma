@@ -1,0 +1,123 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         Role
+  department   Department? @relation(fields: [departmentId], references: [id])
+  departmentId Int?
+  student      Student?
+  faculty      Faculty?
+  notificationsSent Notification[] 
+}
+
+
+model Department {
+  id        Int      @id @default(autoincrement())
+  name      String
+  users     User[]
+  lectures  Lecture[]
+  events    Event[]
+  assignments Assignment[]
+}
+
+model Student {
+  id        Int    @id
+  user      User   @relation(fields: [id], references: [id])
+  rollNo    String
+  year      Int
+  section   String
+  attendance Attendance[]
+  submissions Submission[]
+}
+
+model Faculty {
+  id          Int    @id
+  user        User   @relation(fields: [id], references: [id])
+  designation String
+  lectures    Lecture[]
+  assignments Assignment[]   // <-- add this
+}
+
+model Lecture {
+  id          Int        @id @default(autoincrement())
+  subjectName String
+  faculty     Faculty    @relation(fields: [facultyId], references: [id])
+  facultyId   Int
+  department  Department @relation(fields: [departmentId], references: [id])
+  departmentId Int
+  dateTime    DateTime
+  duration    Int
+  attendance  Attendance[]
+}
+
+model Attendance {
+  id        Int     @id @default(autoincrement())
+  student   Student @relation(fields: [studentId], references: [id])
+  studentId Int
+  lecture   Lecture @relation(fields: [lectureId], references: [id])
+  lectureId Int
+  status    Boolean
+}
+
+model Assignment {
+  id          Int         @id @default(autoincrement())
+  title       String
+  description String
+  dueDate     DateTime
+  faculty     Faculty     @relation(fields: [facultyId], references: [id])
+  facultyId   Int
+  department  Department  @relation(fields: [departmentId], references: [id])
+  departmentId Int
+  submissions Submission[]
+}
+
+model Submission {
+  id          Int      @id @default(autoincrement())
+  assignment  Assignment @relation(fields: [assignmentId], references: [id])
+  assignmentId Int
+  student     Student  @relation(fields: [studentId], references: [id])
+  studentId   Int
+  fileUrl     String
+  submittedAt DateTime  @default(now())
+  grade       Int?
+}
+
+model Event {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String
+  type        String
+  date        DateTime
+  department  Department? @relation(fields: [departmentId], references: [id])
+  departmentId Int?
+}
+
+model Notification {
+  id           Int    @id @default(autoincrement())
+  title        String
+  message      String
+  sender       User   @relation(fields: [senderId], references: [id])
+  senderId     Int
+  recipientRole Role
+  departmentId Int?
+}
+
+enum Role {
+  STUDENT
+  PROFESSOR
+  HOD
+  PRINCIPAL
+}
