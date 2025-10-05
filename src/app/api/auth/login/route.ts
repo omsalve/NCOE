@@ -4,17 +4,14 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import * as z from "zod";
 import { SignJWT } from "jose";
+import { cookies } from "next/headers";
 
 const userSchema = z.object({
   email: z.string().email("Invalid email format"),
   password: z.string().min(1, "Password is required"),
 });
 
-const secretStr = process.env.JWT_SECRET;
-if (!secretStr) {
-  throw new Error("JWT_SECRET is not set in your .env file");
-}
-const secret = new TextEncoder().encode(secretStr);
+const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export async function POST(req: Request) {
   try {
@@ -22,20 +19,27 @@ export async function POST(req: Request) {
     const { email, password } = userSchema.parse(body);
 
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: email },
     });
 
-    // Avoid leaking whether an email address exists in the system
     if (!user) {
-      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Invalid email or password" },
+        { status: 401 }
+      );
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+
     if (!isPasswordValid) {
-      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Invalid email or password" },
+        { status: 401 }
+      );
     }
 
-    // Create JWT payload
+    const { passwordHash, ...userWithoutPassword } = user;
+
     const payload = {
       userId: user.id,
       email: user.email,
@@ -48,26 +52,24 @@ export async function POST(req: Request) {
       .setExpirationTime("24h")
       .sign(secret);
 
-    // Build the response first
-    const { passwordHash, ...userWithoutPassword } = user;
-    const res = NextResponse.json({ user: userWithoutPassword }, { status: 200 });
-
-    // Set the session cookie on the response
-    res.cookies.set("session", token, {
+    // This will now work correctly
+    cookies().set("session", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
       maxAge: 60 * 60 * 24, // 24 hours
       path: "/",
     });
 
-    return res;
-
+    return NextResponse.json({ user: userWithoutPassword }, { status: 200 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues }, { status: 400 });
     }
-    console.error(error); // Log the error for debugging
-    return NextResponse.json({ error: "An unexpected error occurred." }, { status: 500 });
+    
+    console.error(error);
+    return NextResponse.json(
+      { error: "An unexpected error occurred." },
+      { status: 500 }
+    );
   }
 }
