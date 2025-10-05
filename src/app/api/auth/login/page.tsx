@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { AtSign, Lock, LogIn, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-// We no longer import anything from Firebase or AuthContext
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -14,14 +13,13 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   
-  // This function is now updated to call our own backend API
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
-      // Call the Next.js API route we will create
+      // Call the Next.js API route
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -33,13 +31,11 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        // Use the error message from our API, or a default one
         throw new Error(data.error || 'Failed to sign in.');
       }
 
       // On success, redirect to the dashboard
       router.push('/hub/dashboard');
-      // Use router.refresh() if you want to ensure new server-side data is fetched
       router.refresh(); 
 
     } catch (err: any) {
@@ -49,7 +45,6 @@ export default function LoginPage() {
     }
   };
   
-  // We remove the loading state that depended on the old AuthContext
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <motion.div 
@@ -134,3 +129,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
