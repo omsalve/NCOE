@@ -79,7 +79,7 @@ export default function LandingPage() {
             <motion.div variants={itemVariants} className="mt-10 flex justify-center gap-4">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
                 <Link
-                  href="/api/auth/login"
+                  href="/auth/login/"
                   className="inline-flex items-center justify-center px-8 py-3 font-semibold text-white bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 transition-transform"
                 >
                   <User className="w-5 h-5 mr-2" />
@@ -88,7 +88,7 @@ export default function LandingPage() {
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
                 <Link
-                  href="/api/auth/login"
+                  href="/auth/login/"
                   className="inline-flex items-center justify-center px-8 py-3 font-semibold text-gray-800 bg-gray-100 rounded-lg shadow-lg hover:bg-gray-200 transition-transform"
                 >
                   <GraduationCap className="w-5 h-5 mr-2" />

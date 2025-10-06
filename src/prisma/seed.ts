@@ -16,42 +16,46 @@ async function main() {
       name: 'Computer Science',
     },
   });
-
-  // Create a Student (User + Student relation)
-  const studentUser = await prisma.user.create({
-    data: {
-      name: 'Test Student',
-      email: 'student@test.com',
-      passwordHash: hashedPassword,
-      role: 'STUDENT',
-      departmentId: csDept.id,
-      student: {
-        create: {
-          rollNo: 'S2024001',
-          year: 1,
-          section: 'A',
-        },
+// Create or update Student
+const studentUser = await prisma.user.upsert({
+  where: { email: 'student@test.com' },
+  update: {},
+  create: {
+    name: 'Test Student',
+    email: 'student@test.com',
+    passwordHash: hashedPassword,
+    role: 'STUDENT',
+    departmentId: csDept.id,
+    student: {
+      create: {
+        rollNo: 'S2024001',
+        year: 1,
+        section: 'A',
       },
     },
-    include: { student: true },
-  });
+  },
+  include: { student: true },
+});
 
-  // Create a Faculty (User + Faculty relation)
-  const professorUser = await prisma.user.create({
-    data: {
-      name: 'Test Professor',
-      email: 'professor@test.com',
-      passwordHash: hashedPassword,
-      role: 'PROFESSOR',
-      departmentId: csDept.id,
-      faculty: {
-        create: {
-          designation: 'Assistant Professor',
-        },
+// Create or update Faculty
+const professorUser = await prisma.user.upsert({
+  where: { email: 'professor@test.com' },
+  update: {},
+  create: {
+    name: 'Test Professor',
+    email: 'professor@test.com',
+    passwordHash: hashedPassword,
+    role: 'PROFESSOR',
+    departmentId: csDept.id,
+    faculty: {
+      create: {
+        designation: 'Assistant Professor',
       },
     },
-    include: { faculty: true },
-  });
+  },
+  include: { faculty: true },
+});
+
 
   console.log('Seeding finished.');
   console.log(`Created student: ${studentUser.email} (password: password123)`);
