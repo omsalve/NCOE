@@ -1,30 +1,55 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Book, User } from 'lucide-react';
-
-const coursesData = [
-  { code: 'CS101', name: 'Introduction to Computer Science', faculty: 'Dr. Alan Turing' },
-  { code: 'MA203', name: 'Linear Algebra', faculty: 'Dr. Ada Lovelace' },
-  { code: 'PHY101', name: 'Physics I', faculty: 'Dr. Marie Curie' },
-  { code: 'ENG101', name: 'English Composition', faculty: 'Dr. William Shakespeare' },
-];
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
-};
-
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { duration: 0.5 } },
-};
+import { CourseWithFaculty } from '../../api/hub/courses/route'; // Import the type
 
 export default function CoursesPage() {
+  const [coursesData, setCoursesData] = useState<CourseWithFaculty[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const res = await fetch('/api/hub/courses');
+        if (!res.ok) {
+          throw new Error('Failed to fetch course data');
+        }
+        const data = await res.json();
+        setCoursesData(data.courses);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1, transition: { duration: 0.5 } },
+  };
+
+  if (isLoading) {
+    return <div className="p-8">Loading courses...</div>;
+  }
+
+  if (error) {
+    return <div className="p-8 text-red-500">Error: {error}</div>;
+  }
+
   return (
     <motion.div
       className="max-w-7xl mx-auto"
@@ -55,7 +80,7 @@ export default function CoursesPage() {
               </div>
               <div className="flex items-center text-sm text-gray-600 mt-4">
                 <User className="w-4 h-4 mr-2" />
-                <span>{course.faculty}</span>
+                <span>{course.faculty?.user?.name || 'Not Assigned'}</span>
               </div>
             </div>
           </motion.div>

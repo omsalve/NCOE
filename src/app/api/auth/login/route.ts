@@ -5,6 +5,8 @@ import bcrypt from "bcrypt";
 import * as z from "zod";
 import { SignJWT } from "jose";
 
+// We don't need the `cookies` import here for setting a cookie
+
 const userSchema = z.object({
   email: z.string().email("Invalid email format"),
   password: z.string().min(1, "Password is required"),
@@ -25,14 +27,19 @@ export async function POST(req: Request) {
       where: { email },
     });
 
-    // Avoid leaking whether an email address exists in the system
     if (!user) {
-      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Invalid email or password" },
+        { status: 401 }
+      );
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Invalid email or password" },
+        { status: 401 }
+      );
     }
 
     // Create JWT payload
@@ -48,11 +55,12 @@ export async function POST(req: Request) {
       .setExpirationTime("24h")
       .sign(secret);
 
-    // Build the response first
+    // --- THIS IS THE FIX ---
+    // 1. Build the response object first
     const { passwordHash, ...userWithoutPassword } = user;
     const res = NextResponse.json({ user: userWithoutPassword }, { status: 200 });
 
-    // Set the session cookie on the response
+    // 2. Set the cookie on the response object
     res.cookies.set("session", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -61,13 +69,18 @@ export async function POST(req: Request) {
       path: "/",
     });
 
+    // 3. Return the response with the cookie
     return res;
-
+    
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues }, { status: 400 });
     }
-    console.error(error); // Log the error for debugging
-    return NextResponse.json({ error: "An unexpected error occurred." }, { status: 500 });
+    console.error("Login API Error:", error); // Log the actual error
+    return NextResponse.json(
+      { error: "An unexpected error occurred." },
+      { status: 500 }
+    );
   }
 }
+

@@ -1,3 +1,5 @@
+// schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -27,7 +29,7 @@ model Department {
   lectures    Lecture[]
   events      Event[]
   assignments Assignment[]
-  courses     Course[] // Added relation to Course
+  courses     Course[]
 }
 
 model Student {
@@ -46,7 +48,7 @@ model Faculty {
   designation String
   lectures    Lecture[]
   assignments Assignment[]
-  courses     Course[] // Added relation to Course
+  courses     Course[]
 }
 
 model Course {
@@ -57,11 +59,13 @@ model Course {
   facultyId    Int?
   department   Department @relation(fields: [departmentId], references: [id])
   departmentId Int
+  lectures     Lecture[]
 }
 
 model Lecture {
   id           Int          @id @default(autoincrement())
-  subjectName  String
+  course       Course       @relation(fields: [courseId], references: [id])
+  courseId     Int
   faculty      Faculty      @relation(fields: [facultyId], references: [id])
   facultyId    Int
   department   Department   @relation(fields: [departmentId], references: [id])
@@ -77,7 +81,7 @@ model Attendance {
   studentId Int
   lecture   Lecture @relation(fields: [lectureId], references: [id])
   lectureId Int
-  status    Boolean
+  status    Boolean // true for present, false for absent
 }
 
 model Assignment {
@@ -107,20 +111,21 @@ model Event {
   id           Int         @id @default(autoincrement())
   title        String
   description  String
-  type         String
+  type         EventType // HOLIDAY, EXAM, EVENT
   date         DateTime
   department   Department? @relation(fields: [departmentId], references: [id])
   departmentId Int?
 }
 
 model Notification {
-  id            Int    @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   title         String
   message       String
-  sender        User   @relation(fields: [senderId], references: [id])
+  sender        User     @relation(fields: [senderId], references: [id])
   senderId      Int
-  recipientRole Role
+  recipientRole Role?
   departmentId  Int?
+  createdAt     DateTime @default(now())
 }
 
 enum Role {
@@ -128,4 +133,10 @@ enum Role {
   PROFESSOR
   HOD
   PRINCIPAL
+}
+
+enum EventType {
+  HOLIDAY
+  EXAM
+  EVENT
 }
