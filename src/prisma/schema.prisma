@@ -73,6 +73,7 @@ model Lecture {
   dateTime     DateTime
   duration     Int
   attendance   Attendance[]
+  location     String?
 }
 
 model Attendance {
