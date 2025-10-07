@@ -52,14 +52,15 @@ model Faculty {
 }
 
 model Course {
-  id           Int        @id @default(autoincrement())
-  code         String     @unique
+  id           Int          @id @default(autoincrement())
+  code         String       @unique
   name         String
-  faculty      Faculty?   @relation(fields: [facultyId], references: [id])
+  faculty      Faculty?     @relation(fields: [facultyId], references: [id])
   facultyId    Int?
-  department   Department @relation(fields: [departmentId], references: [id])
+  department   Department   @relation(fields: [departmentId], references: [id])
   departmentId Int
   lectures     Lecture[]
+  assignments  Assignment[] // Added relation back to Assignment
 }
 
 model Lecture {
@@ -97,6 +98,8 @@ model Assignment {
   department   Department   @relation(fields: [departmentId], references: [id])
   departmentId Int
   submissions  Submission[]
+  course       Course       @relation(fields: [courseId], references: [id]) // Added relation to Course
+  courseId     Int // Added foreign key
 }
 
 model Submission {
