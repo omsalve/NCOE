@@ -69,8 +69,8 @@ export default function AssignmentsPage() {
             }
           }
         }
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setIsLoading(false);
       }
@@ -78,7 +78,7 @@ export default function AssignmentsPage() {
     fetchData();
   }, []);
 
-  const handleAddAssignment = async (newAssignmentData: any) => {
+  const handleAddAssignment = async (newAssignmentData: { title: string; description: string; dueDate: string; courseId: number }) => {
     const res = await fetch('/api/hub/assignments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

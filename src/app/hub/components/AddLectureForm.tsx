@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 interface AddLectureFormProps {
   courses: CourseWithFaculty[];
   day: string;
-  onAddLecture: (newLectureData: any) => Promise<void>;
+  onAddLecture: (newLectureData: { courseId: number; dateTime: string; duration: number; location?: string }) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -51,8 +51,8 @@ export const AddLectureForm: React.FC<AddLectureFormProps> = ({ courses, day, on
 
     try {
       await onAddLecture(payload);
-    } catch (err: any) {
-      setError(err.message || 'Failed to add lecture.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to add lecture.');
     } finally {
       setIsSubmitting(false);
     }

@@ -5,7 +5,6 @@ import bcrypt from "bcrypt";
 import * as z from "zod";
 import { SignJWT } from "jose";
 
-// We don't need the `cookies` import here for setting a cookie
 
 const userSchema = z.object({
   email: z.string().email("Invalid email format"),
@@ -47,6 +46,7 @@ export async function POST(req: Request) {
       userId: user.id,
       email: user.email,
       role: user.role,
+      name: user.name, // Add name to session
     };
 
     const token = await new SignJWT(payload)
@@ -55,12 +55,10 @@ export async function POST(req: Request) {
       .setExpirationTime("24h")
       .sign(secret);
 
-    // --- THIS IS THE FIX ---
-    // 1. Build the response object first
     const { passwordHash, ...userWithoutPassword } = user;
+    // Destructuring to remove passwordHash from response (unused variable intentional)
     const res = NextResponse.json({ user: userWithoutPassword }, { status: 200 });
 
-    // 2. Set the cookie on the response object
     res.cookies.set("session", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -69,18 +67,16 @@ export async function POST(req: Request) {
       path: "/",
     });
 
-    // 3. Return the response with the cookie
     return res;
     
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues }, { status: 400 });
     }
-    console.error("Login API Error:", error); // Log the actual error
+    console.error("Login API Error:", error);
     return NextResponse.json(
       { error: "An unexpected error occurred." },
       { status: 500 }
     );
   }
 }
-

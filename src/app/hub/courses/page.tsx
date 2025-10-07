@@ -19,8 +19,8 @@ export default function CoursesPage() {
         }
         const data = await res.json();
         setCoursesData(data.courses);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setIsLoading(false);
       }

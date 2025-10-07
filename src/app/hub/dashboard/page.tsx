@@ -8,9 +8,9 @@ import { Assignment, Lecture, Course } from '@prisma/client';
 type UpcomingLecture = Lecture & { course: Pick<Course, 'code' | 'name'> };
 type DueAssignment = Assignment;
 
-const CardSkeleton = ({ title }: { title: string }) => (
+const CardSkeleton = () => (
   <div className="bg-white p-6 rounded-xl shadow-lg animate-pulse">
-    <div className={`h-6 w-1/2 bg-gray-200 rounded mb-6`}></div>
+    <div className="h-6 w-1/2 bg-gray-200 rounded mb-6"></div>
     <div className="space-y-4">
       <div className="h-10 bg-gray-200 rounded"></div>
       <div className="h-10 bg-gray-200 rounded"></div>
@@ -95,8 +95,8 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {isLoading ? (
           <>
-            <CardSkeleton title="Upcoming Classes" />
-            <CardSkeleton title="Assignments Due Soon" />
+            <CardSkeleton />
+            <CardSkeleton />
           </>
         ) : (
           <>

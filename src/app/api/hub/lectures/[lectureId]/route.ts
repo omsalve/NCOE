@@ -5,9 +5,10 @@ import { getSession } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
 
-export async function GET(req: Request, { params }: { params: { lectureId: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ lectureId: string }> }) {
   const session = await getSession();
-  const lectureId = parseInt(params.lectureId);
+  const { lectureId: lectureIdStr } = await params;
+  const lectureId = parseInt(lectureIdStr);
 
   if (!session) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });

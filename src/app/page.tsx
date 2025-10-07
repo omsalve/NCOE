@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { LogIn, User, GraduationCap, CheckCircle, Calendar, BookOpen, BarChart2 } from 'lucide-react';
+import { LogIn, User, GraduationCap, CheckCircle, Calendar, BookOpen } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 
 // Animation variants for Framer Motion

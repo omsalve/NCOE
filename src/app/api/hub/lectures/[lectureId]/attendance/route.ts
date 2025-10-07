@@ -13,9 +13,10 @@ const attendanceSchema = z.object({
   })),
 });
 
-export async function POST(req: Request, { params }: { params: { lectureId: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ lectureId: string }> }) {
   const session = await getSession();
-  const lectureId = parseInt(params.lectureId);
+  const { lectureId: lectureIdStr } = await params;
+  const lectureId = parseInt(lectureIdStr);
 
   if (!session || (session.role !== Role.PROFESSOR && session.role !== Role.HOD)) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 });

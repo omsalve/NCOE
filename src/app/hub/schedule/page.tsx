@@ -75,8 +75,8 @@ export default function SchedulePage() {
             setProfessorCourses(coursesJson.courses);
           }
         }
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setIsLoading(false);
       }
@@ -84,7 +84,7 @@ export default function SchedulePage() {
     fetchData();
   }, []);
 
-  const handleAddLecture = async (newLectureData: any) => {
+  const handleAddLecture = async (newLectureData: { courseId: number; dateTime: string; location?: string }) => {
     const res = await fetch('/api/hub/schedule', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

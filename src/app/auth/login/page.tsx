@@ -19,7 +19,6 @@
       setIsLoading(true);
 
       try {
-        // Call the Next.js API route
         const res = await fetch('/api/auth/login', {
           method: 'POST',
           headers: {
@@ -34,12 +33,15 @@
           throw new Error(data.error || 'Failed to sign in.');
         }
 
-        // On success, redirect to the dashboard
         router.push('/hub/dashboard');
         router.refresh(); 
 
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+            setError(err.message);
+        } else {
+            setError('An unexpected error occurred.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -129,4 +131,3 @@
       </div>
     );
   }
-

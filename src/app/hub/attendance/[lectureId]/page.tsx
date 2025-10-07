@@ -26,18 +26,29 @@ interface LectureDetails {
   students: Student[];
 }
 
-export default function TakeAttendancePage({ params }: { params: { lectureId: string } }) {
+export default function TakeAttendancePage({ params }: { params: Promise<{ lectureId: string }> }) {
   const router = useRouter();
   const [lecture, setLecture] = useState<LectureDetails | null>(null);
   const [attendance, setAttendance] = useState<Record<number, boolean>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lectureId, setLectureId] = useState<string | null>(null);
 
   useEffect(() => {
+    const initializeParams = async () => {
+      const resolvedParams = await params;
+      setLectureId(resolvedParams.lectureId);
+    };
+    initializeParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (!lectureId) return;
+    
     const fetchLectureDetails = async () => {
       try {
-        const res = await fetch(`/api/hub/lectures/${params.lectureId}`);
+        const res = await fetch(`/api/hub/lectures/${lectureId}`);
         if (!res.ok) throw new Error('Failed to fetch lecture details');
         const data = await res.json();
         setLecture(data.lecture);
@@ -47,14 +58,14 @@ export default function TakeAttendancePage({ params }: { params: { lectureId: st
           return acc;
         }, {});
         setAttendance(initialAttendance);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setIsLoading(false);
       }
     };
     fetchLectureDetails();
-  }, [params.lectureId]);
+  }, [lectureId]);
 
   const handleToggleAttendance = (studentId: number) => {
     setAttendance(prev => ({ ...prev, [studentId]: !prev[studentId] }));
@@ -78,7 +89,7 @@ export default function TakeAttendancePage({ params }: { params: { lectureId: st
             status,
         }));
 
-        const res = await fetch(`/api/hub/lectures/${params.lectureId}/attendance`, {
+        const res = await fetch(`/api/hub/lectures/${lectureId}/attendance`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ attendance: payload }),
@@ -92,8 +103,8 @@ export default function TakeAttendancePage({ params }: { params: { lectureId: st
         router.push('/hub/schedule'); // Or a success page
         router.refresh();
 
-    } catch (err: any) {
-        setError(err.message);
+    } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
         setIsSaving(false);
     }

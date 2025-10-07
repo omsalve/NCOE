@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 
 interface AddAssignmentFormProps {
   courses: CourseWithFaculty[];
-  onAddAssignment: (newAssignmentData: any) => Promise<void>;
+  onAddAssignment: (newAssignmentData: { title: string; description: string; dueDate: string; courseId: number }) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -34,8 +34,8 @@ export const AddAssignmentForm: React.FC<AddAssignmentFormProps> = ({ courses, o
 
     try {
       await onAddAssignment(payload);
-    } catch (err: any) {
-      setError(err.message || 'Failed to add assignment.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to add assignment.');
     } finally {
       setIsSubmitting(false);
     }

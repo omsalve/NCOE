@@ -57,8 +57,8 @@ export default function AttendancePage() {
         }
         const data = await res.json();
         setAttendanceData(groupAttendanceByCourse(data.attendance));
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setIsLoading(false);
       }

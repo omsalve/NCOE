@@ -73,8 +73,8 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({ assignment, on
       onSubmissionSuccess(assignment.id);
       onClose();
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsUploading(false);
     }

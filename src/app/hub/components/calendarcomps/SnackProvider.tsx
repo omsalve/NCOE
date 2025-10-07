@@ -6,7 +6,7 @@ import { ErrorIcon, SuccessIcon } from './SnackIcons';
 type Variant = 'success' | 'error';
 
 interface SnackContextType {
-  createSnack: (message: any, variant: Variant) => void;
+  createSnack: (message: string | React.JSX.Element, variant: Variant) => void;
 }
 
 const SnackContext = createContext<SnackContextType | undefined>(undefined);
@@ -33,7 +33,7 @@ interface Snack {
 export const SnackProvider: React.FC<SnackProviderProps> = ({ children }) => {
   const [snacks, setSnacks] = useState<Snack[]>([]);
 
-  const createSnack = useCallback((message: any, variant: 'success' | 'error') => {
+  const createSnack = useCallback((message: string | React.JSX.Element, variant: 'success' | 'error') => {
     const id = Date.now();
     const newSnack = { id, message, variant, visible: true };
     setSnacks([newSnack]);

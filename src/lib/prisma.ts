@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 
 // This helps prevent TypeScript errors in a global context
 declare global {
-  // eslint-disable-next-line no-var
+  // Using var here is intentional for global declaration
   var prisma: PrismaClient | undefined;
 }
 
