@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Home, Calendar, BookOpen, CheckSquare, BarChart2, BookMarked, X } from 'lucide-react';
+import { Home, Calendar, BookOpen, CheckSquare, BarChart2, BookMarked, X, CheckSquare2 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
@@ -13,6 +13,7 @@ const navLinks = [
     { name: 'Assignments', href: '/hub/assignments', icon: CheckSquare },
     { name: 'Academic Calendar', href: '/hub/calendar', icon: BookMarked },
     { name: 'Grades', href: '/hub/grades', icon: BarChart2 },
+    { name: 'Attendance', href: '/hub/attendance', icon: CheckSquare2}
 ];
 
 const sidebarVariants: Variants = {

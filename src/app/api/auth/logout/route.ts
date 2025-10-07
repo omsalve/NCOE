@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 
 export async function POST() {
-  const res = NextResponse.json({ message: 'Logged out' });
+  const res = NextResponse.json({ message: 'Logged out successfully' });
 
-  // Clear the session cookie by setting its value to empty and maxAge to 0
+  // Clear the session cookie by setting its value to empty and expiring it
   res.cookies.set('session', '', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 0, // Expire the cookie immediately
+    maxAge: -1, // Expire the cookie immediately
     path: '/',
   });
 
