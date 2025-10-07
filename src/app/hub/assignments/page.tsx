@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { AssignmentWithDetails } from '@/app/api/hub/assignments/route'; // Corrected import path
-import { SubmissionModal } from '../components/SubmissionModel'; // Corrected import path
-import { Upload } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AssignmentWithDetails } from '@/app/api/hub/assignments/route';
+import { SubmissionModal } from '../components/SubmissionModel';
+import { AddAssignmentForm } from '../components/AddAssignmentsForm';
+import { CourseWithFaculty } from '@/app/api/hub/courses/route';
+import { Role } from '@prisma/client';
+import { Upload, PlusCircle } from 'lucide-react';
 
 // A helper function to determine the status
 const getAssignmentStatus = (assignment: AssignmentWithDetails) => {
@@ -36,22 +39,62 @@ export default function AssignmentsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedAssignment, setSelectedAssignment] = useState<AssignmentWithDetails | null>(null);
+  const [userRole, setUserRole] = useState<Role | null>(null);
+  const [professorCourses, setProfessorCourses] = useState<CourseWithFaculty[]>([]);
+  const [isAddingAssignment, setIsAddingAssignment] = useState(false);
+
 
   useEffect(() => {
-    const fetchAssignments = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch('/api/hub/assignments');
-        if (!res.ok) throw new Error('Failed to fetch assignments');
-        const data = await res.json();
-        setAssignments(data.assignments);
+        const [assignmentsRes, sessionRes] = await Promise.all([
+          fetch('/api/hub/assignments'),
+          fetch('/api/session'),
+        ]);
+
+        if (!assignmentsRes.ok) throw new Error('Failed to fetch assignments');
+        const assignmentsData = await assignmentsRes.json();
+        setAssignments(assignmentsData.assignments);
+
+        if (sessionRes.ok) {
+          const sessionData = await sessionRes.json();
+          const role = sessionData.session?.role;
+          setUserRole(role);
+
+          if (role === Role.PROFESSOR) { // Only fetch courses if user is a professor
+            const coursesRes = await fetch('/api/hub/courses');
+            if (coursesRes.ok) {
+              const coursesData = await coursesRes.json();
+              setProfessorCourses(coursesData.courses);
+            }
+          }
+        }
       } catch (err: any) {
         setError(err.message);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchAssignments();
+    fetchData();
   }, []);
+
+  const handleAddAssignment = async (newAssignmentData: any) => {
+    const res = await fetch('/api/hub/assignments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newAssignmentData),
+    });
+
+    if (!res.ok) {
+      const { error } = await res.json();
+      throw new Error(error || 'Failed to create assignment.');
+    }
+
+    const { assignment: newAssignment } = await res.json();
+    setAssignments(prev => [newAssignment, ...prev]);
+    setIsAddingAssignment(false);
+  };
+
 
   const handleSubmissionSuccess = (assignmentId: number) => {
     setAssignments(prev =>
@@ -65,6 +108,7 @@ export default function AssignmentsPage() {
             fileUrl: '', // This isn't needed for the status update
             submittedAt: new Date(),
             grade: null,
+            course: asmnt.course, // Keep course data
           };
           return { ...asmnt, submissions: [mockSubmission] };
         }
@@ -75,6 +119,9 @@ export default function AssignmentsPage() {
 
   const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } };
   const itemVariants = { hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1, transition: { duration: 0.5 } } };
+  
+  const isProfessor = userRole === Role.PROFESSOR;
+
 
   if (isLoading) return <div className="p-8">Loading assignments...</div>;
   if (error) return <div className="p-8 text-red-500">Error: {error}</div>;
@@ -93,9 +140,31 @@ export default function AssignmentsPage() {
         initial="hidden"
         animate="visible"
       >
-        <motion.h1 variants={itemVariants} className="text-3xl font-bold mb-6 text-gray-900">
-          Assignments
-        </motion.h1>
+        <motion.div variants={itemVariants} className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Assignments
+          </h1>
+          {isProfessor && (
+            <button
+              onClick={() => setIsAddingAssignment(!isAddingAssignment)}
+              className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
+            >
+              <PlusCircle className="w-4 h-4 mr-1" />
+              New Assignment
+            </button>
+          )}
+        </motion.div>
+        
+        <AnimatePresence>
+          {isAddingAssignment && (
+            <AddAssignmentForm
+              courses={professorCourses}
+              onAddAssignment={handleAddAssignment}
+              onCancel={() => setIsAddingAssignment(false)}
+            />
+          )}
+        </AnimatePresence>
+
 
         <div className="space-y-3">
           {assignments.length > 0 ? (
@@ -112,7 +181,7 @@ export default function AssignmentsPage() {
                   <div>
                     <p className="font-semibold text-gray-800">{assignment.title}</p>
                     <p className="text-sm text-gray-500">
-                      Due: {new Date(assignment.dueDate).toLocaleDateString()}
+                      {assignment.course.name} - Due: {new Date(assignment.dueDate).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="flex items-center space-x-4">
@@ -141,3 +210,4 @@ export default function AssignmentsPage() {
     </>
   );
 }
+
