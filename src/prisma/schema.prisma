@@ -82,6 +82,8 @@ model Attendance {
   lecture   Lecture @relation(fields: [lectureId], references: [id])
   lectureId Int
   status    Boolean // true for present, false for absent
+
+  @@unique([studentId, lectureId])
 }
 
 model Assignment {

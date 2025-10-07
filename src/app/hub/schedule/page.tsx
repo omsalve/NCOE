@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link'; // Import the Link component
 import { motion } from 'framer-motion';
 import { Clock, MapPin, User } from 'lucide-react';
+import { Role } from '@prisma/client'; // Import Role enum
 
 // This interface now expects the nested course object
 interface Lecture {
@@ -17,7 +19,7 @@ interface Lecture {
       name: string;
     };
   };
-  location?: string; // You can add a location field to your schema later
+  location?: string;
 }
 
 // Helper function to group lectures by day
@@ -37,23 +39,35 @@ const groupLecturesByDay = (lectures: Lecture[]) => {
 
 export default function SchedulePage() {
   const [scheduleData, setScheduleData] = useState<Record<string, Lecture[]>>({});
+  const [userRole, setUserRole] = useState<Role | null>(null); // State to hold user role
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchSchedule = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch('/api/hub/schedule');
-        if (!res.ok) throw new Error('Failed to fetch schedule data');
-        const data = await res.json();
-        setScheduleData(groupLecturesByDay(data.lectures));
+        // Fetch both schedule and session info at the same time
+        const [scheduleRes, sessionRes] = await Promise.all([
+            fetch('/api/hub/schedule'),
+            fetch('/api/session') // We'll create this simple API route next
+        ]);
+
+        if (!scheduleRes.ok) throw new Error('Failed to fetch schedule data');
+        if (!sessionRes.ok) throw new Error('Failed to fetch user session');
+        
+        const scheduleData = await scheduleRes.json();
+        const sessionData = await sessionRes.json();
+
+        setScheduleData(groupLecturesByDay(scheduleData.lectures));
+        setUserRole(sessionData.session?.role || null);
+
       } catch (err: any) {
         setError(err.message);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchSchedule();
+    fetchData();
   }, []);
 
   const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } };
@@ -92,9 +106,19 @@ export default function SchedulePage() {
                         <span>{cls.faculty.user.name}</span>
                       </div>
                     </div>
-                    <div className="flex items-center text-sm font-medium text-gray-600">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      <span>{cls.location || 'TBA'}</span>
+                    <div className="flex items-center space-x-4">
+                        <div className="flex items-center text-sm font-medium text-gray-600">
+                            <MapPin className="w-4 h-4 mr-2" />
+                            <span>{cls.location || 'TBA'}</span>
+                        </div>
+                        {/* --- CONDITIONAL BUTTON --- */}
+                        {(userRole === Role.PROFESSOR || userRole === Role.HOD) && (
+                            <Link href={`/hub/attendance/${cls.id}`}>
+                                <button className="px-3 py-1 text-xs font-semibold text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors">
+                                    Take Attendance
+                                </button>
+                            </Link>
+                        )}
                     </div>
                   </div>
                 ))
