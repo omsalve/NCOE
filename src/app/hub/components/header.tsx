@@ -1,10 +1,12 @@
+// src/app/hub/components/header.tsx
+
 "use client";
 
 import React from 'react';
+import { useRouter } from 'next/navigation'; // 1. Import the router
 import { Bell, UserCircle, Menu } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-// The header now accepts a user name and a function to handle logout
 export const Header = ({ 
   userName, 
   toggleSidebar 
@@ -12,12 +14,14 @@ export const Header = ({
   userName: string;
   toggleSidebar: () => void; 
 }) => {
+  const router = useRouter(); // 2. Initialize the router
 
   const handleLogout = async () => {
-    // Call the logout API route
     await fetch('/api/auth/logout', { method: 'POST' });
-    // Redirect to login page after logout
-    window.location.href = '/auth/login';
+    
+    // 3. Use the router to push to the login page
+    router.push('/auth/login');
+    router.refresh(); // This ensures the server state is cleared
   };
 
   return (
@@ -38,7 +42,6 @@ export const Header = ({
         <button className="text-gray-600 hover:text-blue-600">
           <Bell className="h-6 w-6" />
         </button>
-        {/* Simple Logout Button */}
         <motion.button
           onClick={handleLogout}
           className="text-sm font-medium text-gray-600 hover:text-red-600"
