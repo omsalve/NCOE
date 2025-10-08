@@ -1,10 +1,12 @@
-// src/app/hub/attendance/page.tsx
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen, Check, X } from 'lucide-react';
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
+import { Role } from '@prisma/client';
+
 
 // Define the type for a single attendance record, including nested lecture and course info
 interface AttendanceRecord {
@@ -42,23 +44,47 @@ const groupAttendanceByCourse = (records: AttendanceRecord[]) => {
   }, {} as Record<string, { name: string; records: AttendanceRecord[]; present: number; absent: number }>);
 };
 
+// Helper function to format percentages
+const formatPercentage = (present: number, total: number) => {
+    if (total === 0) return 'N/A';
+    const percentage = (present / total) * 100;
+    return percentage % 1 === 0 ? percentage.toString() : percentage.toFixed(1);
+}
+
 
 export default function AttendancePage() {
   const [attendanceData, setAttendanceData] = useState<Record<string, { name: string; records: AttendanceRecord[]; present: number; absent: number }>>({});
+  const [allRecords, setAllRecords] = useState<AttendanceRecord[]>([]);
+  const [userRole, setUserRole] = useState<Role | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const res = await fetch('/api/hub/attendance');
-        if (!res.ok) {
+        const [attendanceRes, sessionRes] = await Promise.all([
+            fetch('/api/hub/attendance'),
+            fetch('/api/session')
+        ]);
+        
+        if (!attendanceRes.ok) {
           throw new Error('Failed to fetch attendance data');
         }
-        const data = await res.json();
-        setAttendanceData(groupAttendanceByCourse(data.attendance));
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        if (sessionRes.ok) {
+            const sessionData = await sessionRes.json();
+            setUserRole(sessionData.session?.role || null);
+        }
+
+        const data = await attendanceRes.json();
+        
+        // Ensure we only calculate attendance for past lectures
+        const now = new Date();
+        const pastRecords = data.attendance.filter((record: AttendanceRecord) => new Date(record.lecture.dateTime) <= now);
+
+        setAllRecords(pastRecords);
+        setAttendanceData(groupAttendanceByCourse(pastRecords));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
       } finally {
         setIsLoading(false);
       }
@@ -80,6 +106,11 @@ export default function AttendancePage() {
     visible: { y: 0, opacity: 1, transition: { duration: 0.5 } },
   };
 
+  const totalClasses = allRecords.length;
+  const presentClasses = allRecords.filter(r => r.status).length;
+  const overallPercentage = totalClasses > 0 ? Math.round((presentClasses / totalClasses) * 100) : 0;
+  const isStudent = userRole === Role.STUDENT;
+
   if (isLoading) {
     return <div className="p-8">Loading attendance records...</div>;
   }
@@ -99,10 +130,30 @@ export default function AttendancePage() {
         Your Attendance
       </motion.h1>
 
+      {isStudent && (
+        <motion.div variants={itemVariants} className="bg-white rounded-xl shadow-lg p-6 mb-8 flex items-center justify-between">
+            <div>
+                <h2 className="text-2xl font-bold text-gray-800">Overall Attendance</h2>
+                <p className="text-gray-600">You have attended {presentClasses} out of {totalClasses} classes.</p>
+            </div>
+            <div style={{ width: 100, height: 100 }}>
+                <CircularProgressbar
+                    value={overallPercentage}
+                    text={`${overallPercentage}%`}
+                    styles={buildStyles({
+                        textColor: '#15803d',
+                        pathColor: '#22c55e',
+                        trailColor: '#d1fae5',
+                    })}
+                />
+            </div>
+        </motion.div>
+      )}
+
       <div className="space-y-8">
         {Object.entries(attendanceData).map(([courseCode, courseInfo]) => {
           const total = courseInfo.present + courseInfo.absent;
-          const percentage = total > 0 ? ((courseInfo.present / total) * 100).toFixed(1) : 'N/A';
+          const percentage = formatPercentage(courseInfo.present, total);
 
           return (
             <motion.div
@@ -118,7 +169,7 @@ export default function AttendancePage() {
                   <div>
                     <h2 className="text-xl font-bold text-gray-800">{courseInfo.name} ({courseCode})</h2>
                     <p className="text-gray-600">
-                      Overall: <span className="font-semibold">{percentage}%</span> ({courseInfo.present} / {total} classes)
+                      Attendance: <span className="font-semibold">{percentage}%</span> ({courseInfo.present} / {total} classes)
                     </p>
                   </div>
                 </div>
@@ -153,3 +204,4 @@ export default function AttendancePage() {
     </motion.div>
   );
 }
+

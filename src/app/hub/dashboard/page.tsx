@@ -2,15 +2,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Assignment, Lecture, Course } from '@prisma/client';
+import { Assignment, Lecture, Course, Role } from '@prisma/client';
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
 
 // Define more specific types for our data
 type UpcomingLecture = Lecture & { course: Pick<Course, 'code' | 'name'> };
 type DueAssignment = Assignment;
+interface AttendanceRecord {
+  status: boolean;
+}
 
 const CardSkeleton = () => (
   <div className="bg-white p-6 rounded-xl shadow-lg animate-pulse">
-    <div className="h-6 w-1/2 bg-gray-200 rounded mb-6"></div>
+    <div className={`h-6 w-1/2 bg-gray-200 rounded mb-6`}></div>
     <div className="space-y-4">
       <div className="h-10 bg-gray-200 rounded"></div>
       <div className="h-10 bg-gray-200 rounded"></div>
@@ -53,22 +58,65 @@ const DueAssignmentsCard = ({ assignments }: { assignments: DueAssignment[] }) =
     </div>
 );
 
+const AttendanceSummaryCard = ({ attendance }: { attendance: AttendanceRecord[] }) => {
+    const total = attendance.length;
+    const present = attendance.filter(record => record.status).length;
+    const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
+  
+    return (
+      <div className="bg-white p-6 rounded-xl shadow-lg h-full flex flex-col items-center justify-center">
+        <h3 className="font-bold text-lg mb-4 text-green-700">Overall Attendance</h3>
+        <div style={{ width: 120, height: 120 }}>
+          <CircularProgressbar
+            value={percentage}
+            text={`${percentage}%`}
+            styles={buildStyles({
+              textColor: '#15803d',
+              pathColor: '#22c55e',
+              trailColor: '#d1fae5',
+            })}
+          />
+        </div>
+      </div>
+    );
+};
+
 export default function DashboardPage() {
   const [lectures, setLectures] = useState<UpcomingLecture[]>([]);
   const [assignments, setAssignments] = useState<DueAssignment[]>([]);
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
+  const [userRole, setUserRole] = useState<Role | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [lecturesRes, assignmentsRes] = await Promise.all([
+        const sessionRes = await fetch('/api/session');
+        const sessionData = await sessionRes.json();
+        const role = sessionData.session?.role;
+        setUserRole(role);
+
+        const apiCalls = [
           fetch('/api/hub/dashboard/upcoming-lectures'),
           fetch('/api/hub/dashboard/due-assignments'),
-        ]);
+        ];
+        
+        if (role === Role.STUDENT) {
+            apiCalls.push(fetch('/api/hub/attendance'));
+        }
+
+        const [lecturesRes, assignmentsRes, attendanceRes] = await Promise.all(apiCalls);
+       
         const lecturesData = await lecturesRes.json();
         const assignmentsData = await assignmentsRes.json();
         setLectures(lecturesData.lectures || []);
         setAssignments(assignmentsData.assignments || []);
+        
+        if (attendanceRes) {
+            const attendanceData = await attendanceRes.json();
+            setAttendance(attendanceData.attendance || []);
+        }
+
       } catch (error) {
         console.error("Failed to load dashboard data:", error);
       } finally {
@@ -80,6 +128,7 @@ export default function DashboardPage() {
 
   const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.2 } } };
   const itemVariants = { hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1, transition: { duration: 0.5 } } };
+  const isStudent = userRole === Role.STUDENT;
 
   return (
     <motion.div
@@ -92,24 +141,29 @@ export default function DashboardPage() {
         Your Dashboard
       </motion.h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {isLoading ? (
           <>
             <CardSkeleton />
             <CardSkeleton />
+            {isStudent && <CardSkeleton />}
           </>
         ) : (
           <>
-            <motion.div variants={itemVariants}>
+            <motion.div variants={itemVariants} className="xl:col-span-1">
               <UpcomingScheduleCard lectures={lectures} />
             </motion.div>
-            <motion.div variants={itemVariants}>
+            <motion.div variants={itemVariants} className="xl:col-span-1">
               <DueAssignmentsCard assignments={assignments} />
             </motion.div>
+            {isStudent && (
+              <motion.div variants={itemVariants} className="lg:col-span-2 xl:col-span-1">
+                <AttendanceSummaryCard attendance={attendance} />
+              </motion.div>
+            )}
           </>
         )}
       </div>
     </motion.div>
   );
 }
-
