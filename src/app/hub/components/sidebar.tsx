@@ -2,19 +2,21 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Home, Calendar, BookOpen, CheckSquare, BarChart2, BookMarked, X, CheckSquare2 } from 'lucide-react';
+import { Home, Calendar, BookOpen, CheckSquare, BarChart2, BookMarked, X, CheckSquare2, Briefcase } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { Role } from '@prisma/client';
 
-const navLinks = [
-    { name: 'Dashboard', href: '/hub/dashboard', icon: Home },
-    { name: 'Schedule', href: '/hub/schedule', icon: Calendar },
-    { name: 'Courses', href: '/hub/courses', icon: BookOpen },
-    { name: 'Assignments', href: '/hub/assignments', icon: CheckSquare },
-    { name: 'Academic Calendar', href: '/hub/calendar', icon: BookMarked },
-    { name: 'Grades', href: '/hub/grades', icon: BarChart2 },
-    { name: 'Attendance', href: '/hub/attendance', icon: CheckSquare2}
+const allNavLinks = [
+    { name: 'Dashboard', href: '/hub/dashboard', icon: Home, roles: [Role.STUDENT, Role.PROFESSOR, Role.HOD, Role.PRINCIPAL] },
+    { name: 'Schedule', href: '/hub/schedule', icon: Calendar, roles: [Role.STUDENT, Role.PROFESSOR, Role.HOD] },
+    { name: 'My Department', href: '/hub/department', icon: Briefcase, roles: [Role.HOD] },
+    { name: 'Courses', href: '/hub/courses', icon: BookOpen, roles: [Role.STUDENT, Role.PROFESSOR, Role.HOD] },
+    { name: 'Assignments', href: '/hub/assignments', icon: CheckSquare, roles: [Role.STUDENT, Role.PROFESSOR, Role.HOD] },
+    { name: 'Academic Calendar', href: '/hub/calendar', icon: BookMarked, roles: [Role.STUDENT, Role.PROFESSOR, Role.HOD] },
+    { name: 'Grades', href: '/hub/grades', icon: BarChart2, roles: [Role.STUDENT] },
+    { name: 'Attendance', href: '/hub/attendance', icon: CheckSquare2, roles: [Role.STUDENT] }
 ];
 
 const sidebarVariants: Variants = {
@@ -32,12 +34,14 @@ const linkVariants: Variants = {
   visible: { opacity: 1, x: 0 }
 };
 
-export const Sidebar = ({ isOpen, toggle }: { isOpen: boolean; toggle: () => void; }) => {
+export const Sidebar = ({ isOpen, toggle, userRole }: { isOpen: boolean; toggle: () => void; userRole: Role | null; }) => {
     const pathname = usePathname();
+
+    const availableLinks = userRole ? allNavLinks.filter(link => link.roles.includes(userRole)) : [];
 
     const NavContent = () => (
       <nav className="flex-1 p-4 space-y-2">
-        {navLinks.map((link) => {
+        {availableLinks.map((link) => {
           const isActive = pathname === link.href;
           return (
             <motion.div key={link.name} variants={linkVariants}>
@@ -47,7 +51,7 @@ export const Sidebar = ({ isOpen, toggle }: { isOpen: boolean; toggle: () => voi
                 className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                   isActive
                     ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-600 hover:bg-yellow-100 hover:text-yellow-800'
+                    : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
                 }`}
               >
                 <link.icon className="h-5 w-5 mr-3" />
@@ -128,4 +132,3 @@ export const Sidebar = ({ isOpen, toggle }: { isOpen: boolean; toggle: () => voi
       </>
     );
 };
-
