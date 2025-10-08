@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "NESCOE Hub",
   description: "Official Hub for NESCOE Students and Faculty",
+  icons: {
+    icon: '/images/COElogo.png',
+  },
 };
 
 export default function RootLayout({
