@@ -28,6 +28,15 @@ export async function GET() {
   try {
     let courses: CourseWithFaculty[] = [];
 
+    const userWithDept = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { departmentId: true },
+    });
+    
+    if (!userWithDept?.departmentId) {
+        return NextResponse.json({ courses: [] });
+    }
+
     const queryArgs = {
       include: {
         faculty: {
@@ -39,26 +48,37 @@ export async function GET() {
         },
       },
       orderBy: {
-        name: 'asc' as const, // <-- THE FIX IS HERE
+        name: 'asc' as const,
       },
     };
 
+    // --- NEW ROLE-BASED LOGIC ---
+
     if (session.role === Role.STUDENT) {
-      const userWithDept = await prisma.user.findUnique({
-        where: { id: session.userId },
-        select: { departmentId: true },
+      // Students see courses from their department AND common first-year Applied Sciences courses.
+      const appliedSciencesDept = await prisma.department.findFirst({
+        where: { name: 'Applied Sciences' },
       });
 
-      if (!userWithDept?.departmentId) {
-        return NextResponse.json({ courses: [] });
-      }
+      courses = await prisma.course.findMany({
+        where: {
+          OR: [
+            { departmentId: userWithDept.departmentId },
+            { departmentId: appliedSciencesDept?.id },
+          ],
+        },
+        ...queryArgs,
+      });
 
+    } else if (session.role === Role.HOD) {
+      // HODs see ALL courses in their department.
       courses = await prisma.course.findMany({
         where: { departmentId: userWithDept.departmentId },
         ...queryArgs,
       });
 
-    } else if (session.role === Role.PROFESSOR || session.role === Role.HOD) {
+    } else if (session.role === Role.PROFESSOR) {
+      // Professors see only the courses they are assigned to teach.
       courses = await prisma.course.findMany({
         where: { facultyId: session.userId },
         ...queryArgs,

@@ -13,7 +13,8 @@ export default function CoursesPage() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await fetch('/api/hub/courses');
+        // Add { cache: 'no-store' } to prevent Next.js from caching the API response
+        const res = await fetch('/api/hub/courses', { cache: 'no-store' });
         if (!res.ok) {
           throw new Error('Failed to fetch course data');
         }

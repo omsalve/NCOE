@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Home, Calendar, BookOpen, CheckSquare, BarChart2, BookMarked, X, CheckSquare2, Briefcase } from 'lucide-react';
+import { Home, Calendar, BookOpen, CheckSquare, BarChart2, BookMarked, X, CheckSquare2, Briefcase, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
@@ -10,6 +10,7 @@ import { Role } from '@prisma/client';
 
 const allNavLinks = [
     { name: 'Dashboard', href: '/hub/dashboard', icon: Home, roles: [Role.STUDENT, Role.PROFESSOR, Role.HOD, Role.PRINCIPAL] },
+    { name: 'Admin Overview', href: '/hub/admin/overview', icon: Shield, roles: [Role.PRINCIPAL] },
     { name: 'Schedule', href: '/hub/schedule', icon: Calendar, roles: [Role.STUDENT, Role.PROFESSOR, Role.HOD] },
     { name: 'My Department', href: '/hub/department', icon: Briefcase, roles: [Role.HOD] },
     { name: 'Courses', href: '/hub/courses', icon: BookOpen, roles: [Role.STUDENT, Role.PROFESSOR, Role.HOD] },
@@ -42,7 +43,7 @@ export const Sidebar = ({ isOpen, toggle, userRole }: { isOpen: boolean; toggle:
     const NavContent = () => (
       <nav className="flex-1 p-4 space-y-2">
         {availableLinks.map((link) => {
-          const isActive = pathname === link.href;
+          const isActive = pathname.startsWith(link.href);
           return (
             <motion.div key={link.name} variants={linkVariants}>
               <Link
