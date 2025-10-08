@@ -1,16 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AssignmentWithDetails } from '@/app/api/hub/assignments/route';
 import { SubmissionModal } from '../components/SubmissionModel';
 import { AddAssignmentForm } from '../components/AddAssignmentsForm';
 import { CourseWithFaculty } from '@/app/api/hub/courses/route';
 import { Role } from '@prisma/client';
-import { Upload, PlusCircle } from 'lucide-react';
+import { Upload, PlusCircle, Users } from 'lucide-react';
 
-// A helper function to determine the status
-const getAssignmentStatus = (assignment: AssignmentWithDetails) => {
+// A helper function to determine the status for a student
+const getStudentAssignmentStatus = (assignment: AssignmentWithDetails) => {
   const now = new Date();
   const dueDate = new Date(assignment.dueDate);
 
@@ -43,7 +44,6 @@ export default function AssignmentsPage() {
   const [professorCourses, setProfessorCourses] = useState<CourseWithFaculty[]>([]);
   const [isAddingAssignment, setIsAddingAssignment] = useState(false);
 
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -61,7 +61,7 @@ export default function AssignmentsPage() {
           const role = sessionData.session?.role;
           setUserRole(role);
 
-          if (role === Role.PROFESSOR) { // Only fetch courses if user is a professor
+          if (role === Role.PROFESSOR || role === Role.HOD) {
             const coursesRes = await fetch('/api/hub/courses');
             if (coursesRes.ok) {
               const coursesData = await coursesRes.json();
@@ -95,20 +95,18 @@ export default function AssignmentsPage() {
     setIsAddingAssignment(false);
   };
 
-
   const handleSubmissionSuccess = (assignmentId: number) => {
     setAssignments(prev =>
       prev.map(asmnt => {
         if (asmnt.id === assignmentId) {
-          // Create a mock submission that matches the required type
           const mockSubmission = {
-            id: Date.now(), // Use a temporary unique ID
+            id: Date.now(),
             assignmentId: assignmentId,
-            studentId: 0, // This will be set correctly on the server
-            fileUrl: '', // This isn't needed for the status update
+            studentId: 0,
+            fileUrl: '',
             submittedAt: new Date(),
             grade: null,
-            course: asmnt.course, // Keep course data
+            course: asmnt.course,
           };
           return { ...asmnt, submissions: [mockSubmission] };
         }
@@ -119,16 +117,15 @@ export default function AssignmentsPage() {
 
   const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } };
   const itemVariants = { hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1, transition: { duration: 0.5 } } };
-  
-  const isProfessor = userRole === Role.PROFESSOR;
 
+  const isFaculty = userRole === Role.PROFESSOR || userRole === Role.HOD;
 
   if (isLoading) return <div className="p-8">Loading assignments...</div>;
   if (error) return <div className="p-8 text-red-500">Error: {error}</div>;
 
   return (
     <>
-      <SubmissionModal 
+      <SubmissionModal
         assignment={selectedAssignment}
         onClose={() => setSelectedAssignment(null)}
         onSubmissionSuccess={handleSubmissionSuccess}
@@ -141,10 +138,8 @@ export default function AssignmentsPage() {
         animate="visible"
       >
         <motion.div variants={itemVariants} className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Assignments
-          </h1>
-          {isProfessor && (
+          <h1 className="text-3xl font-bold text-gray-900">Assignments</h1>
+          {isFaculty && (
             <button
               onClick={() => setIsAddingAssignment(!isAddingAssignment)}
               className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
@@ -154,7 +149,7 @@ export default function AssignmentsPage() {
             </button>
           )}
         </motion.div>
-        
+
         <AnimatePresence>
           {isAddingAssignment && (
             <AddAssignmentForm
@@ -165,42 +160,66 @@ export default function AssignmentsPage() {
           )}
         </AnimatePresence>
 
-
         <div className="space-y-3">
           {assignments.length > 0 ? (
             assignments.map((assignment) => {
-              const status = getAssignmentStatus(assignment);
-              const isSubmittable = status === 'Upcoming' || status === 'Past Due';
-
-              return (
-                <motion.div
-                  key={assignment.id}
-                  variants={itemVariants}
-                  className="p-4 bg-white rounded-lg shadow-md flex justify-between items-center"
-                >
-                  <div>
-                    <p className="font-semibold text-gray-800">{assignment.title}</p>
-                    <p className="text-sm text-gray-500">
-                      {assignment.course.name} - Due: {new Date(assignment.dueDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <span className={`text-sm font-bold ${getStatusColor(status)}`}>
-                      {status}
-                      {status === 'Graded' && assignment.submissions[0]?.grade && `: ${assignment.submissions[0].grade}`}
-                    </span>
-                    {isSubmittable && (
-                      <button 
-                        onClick={() => setSelectedAssignment(assignment)}
-                        className="px-3 py-1 text-xs font-semibold text-white bg-blue-600 rounded-full hover:bg-blue-700 flex items-center"
-                      >
-                        <Upload className="w-3 h-3 mr-1" />
-                        Submit
-                      </button>
-                    )}
-                  </div>
-                </motion.div>
-              );
+              if (isFaculty) {
+                // FACULTY VIEW: Link to submissions page
+                return (
+                  <Link href={`/hub/assignments/${assignment.id}`} key={assignment.id}>
+                    <motion.div
+                      variants={itemVariants}
+                      className="p-4 bg-white rounded-lg shadow-md flex justify-between items-center hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <div>
+                        <p className="font-semibold text-gray-800">{assignment.title}</p>
+                        <p className="text-sm text-gray-500">
+                          {assignment.course.name} - Due: {new Date(assignment.dueDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center text-sm font-semibold text-blue-600">
+                          <Users className="w-4 h-4 mr-2" />
+                          <span>{assignment.submissions.length} Submissions</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </Link>
+                );
+              } else {
+                // STUDENT VIEW: Original view with submit button
+                const status = getStudentAssignmentStatus(assignment);
+                const isSubmittable = status === 'Upcoming' || status === 'Past Due';
+                return (
+                  <motion.div
+                    key={assignment.id}
+                    variants={itemVariants}
+                    className="p-4 bg-white rounded-lg shadow-md flex justify-between items-center"
+                  >
+                    <div>
+                      <p className="font-semibold text-gray-800">{assignment.title}</p>
+                      <p className="text-sm text-gray-500">
+                        {assignment.course.name} - Due: {new Date(assignment.dueDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <span className={`text-sm font-bold ${getStatusColor(status)}`}>
+                        {status}
+                        {status === 'Graded' && assignment.submissions[0]?.grade && `: ${assignment.submissions[0].grade}`}
+                      </span>
+                      {isSubmittable && (
+                        <button
+                          onClick={() => setSelectedAssignment(assignment)}
+                          className="px-3 py-1 text-xs font-semibold text-white bg-blue-600 rounded-full hover:bg-blue-700 flex items-center"
+                        >
+                          <Upload className="w-3 h-3 mr-1" />
+                          Submit
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              }
             })
           ) : (
             <motion.p variants={itemVariants} className="text-gray-500">No assignments found.</motion.p>
@@ -210,4 +229,3 @@ export default function AssignmentsPage() {
     </>
   );
 }
-
