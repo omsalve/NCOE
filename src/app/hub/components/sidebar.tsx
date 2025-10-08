@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Image from 'next/image';
 import { Home, Calendar, BookOpen, CheckSquare, BarChart2, BookMarked, X, CheckSquare2 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -62,8 +63,14 @@ export const Sidebar = ({ isOpen, toggle }: { isOpen: boolean; toggle: () => voi
       <>
         {/* --- DESKTOP SIDEBAR --- */}
         <aside className="w-64 bg-white border-r border-gray-200 flex-col hidden md:flex">
-            <div className="h-16 flex items-center justify-center border-b border-gray-200">
-                <h1 className="text-2xl font-bold text-blue-700">NESCOE Hub</h1>
+            <div className="h-24 flex items-center justify-center border-b border-gray-200 p-4">
+                <Image 
+                    src="/images/COElogo.png" 
+                    alt="NESCOE Logo" 
+                    width={80} 
+                    height={80} 
+                    className="rounded-lg"
+                />
             </div>
             <motion.div
               variants={linkContainerVariants}
@@ -97,7 +104,13 @@ export const Sidebar = ({ isOpen, toggle }: { isOpen: boolean; toggle: () => voi
                 className="fixed top-0 left-0 h-full w-64 bg-white z-40 flex flex-col md:hidden"
             >
                 <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
-                    <h1 className="text-2xl font-bold text-blue-700">NESCOE Hub</h1>
+                    <Image 
+                        src="/images/COElogo.png" 
+                        alt="NESCOE Logo" 
+                        width={48} 
+                        height={48} 
+                        className="rounded-lg"
+                    />
                     <button onClick={toggle} className="p-1" aria-label="Close sidebar">
                     <X className="h-6 w-6 text-gray-600"/>
                     </button>

@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation'; // 1. Import the router
+import Image from 'next/image';
 import { Bell, UserCircle, Menu } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -34,8 +35,8 @@ export const Header = ({
         <Menu className="h-6 w-6" />
       </button>
 
-      <div className="hidden md:block">
-        <h2 className="text-lg font-semibold">Welcome back, {userName}!</h2>
+      <div className="hidden md:flex items-center space-x-3">
+        <h2 className="text-black text-lg font-semibold">Welcome back, {userName}!</h2>
       </div>
       
       <div className="flex items-center space-x-4">

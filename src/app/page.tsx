@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { LogIn, User, GraduationCap, CheckCircle, Calendar, BookOpen } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 
@@ -46,7 +47,16 @@ export default function LandingPage() {
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <div className="container mx-auto flex justify-between items-center h-16 px-6">
-          <h1 className="text-2xl font-bold text-blue-700">NESCOE Hub</h1>
+          <div className="flex items-center space-x-3">
+            <Image 
+              src="/images/COElogo.png" 
+              alt="NESCOE Logo" 
+              width={40} 
+              height={40} 
+              className="rounded-lg w-8 h-8 sm:w-10 sm:h-10"
+            />
+            <h1 className="text-xl sm:text-2xl font-bold text-blue-700">NESCOE Hub</h1>
+          </div>
           <nav>
             <Link
               href="/auth/login"
@@ -62,13 +72,22 @@ export default function LandingPage() {
       {/* Main Content */}
       <main className="pt-16">
         {/* Hero Section */}
-        <section className="bg-white py-24 md:py-32">
+        <section className="bg-white py-16 md:py-24">
           <motion.div
             className="container mx-auto text-center px-6"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
+            <motion.div variants={itemVariants} className="flex items-center justify-center mb-6">
+              <Image 
+                src="/images/COElogo.png" 
+                alt="NESCOE Logo" 
+                width={400} 
+                height={400} 
+                className="rounded-xl w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64"
+              />
+            </motion.div>
             <motion.h2 variants={itemVariants} className="text-4xl md:text-6xl font-extrabold text-gray-900 leading-tight tracking-tight">
               Your Campus, <span className="text-blue-700">Connected.</span>
             </motion.h2>
@@ -76,11 +95,11 @@ export default function LandingPage() {
               The official hub for NESCOE students and faculty. Access your schedule, assignments, and campus updates all in one place.
             </motion.p>
             
-            <motion.div variants={itemVariants} className="mt-10 flex justify-center gap-4">
+            <motion.div variants={itemVariants} className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
                 <Link
                   href="/auth/login/"
-                  className="inline-flex items-center justify-center px-8 py-3 font-semibold text-white bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 transition-transform"
+                  className="inline-flex items-center justify-center px-8 py-3 font-semibold text-white bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 transition-transform w-full sm:w-auto"
                 >
                   <User className="w-5 h-5 mr-2" />
                   Student Portal
@@ -89,7 +108,7 @@ export default function LandingPage() {
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
                 <Link
                   href="/auth/login/"
-                  className="inline-flex items-center justify-center px-8 py-3 font-semibold text-gray-800 bg-gray-100 rounded-lg shadow-lg hover:bg-gray-200 transition-transform"
+                  className="inline-flex items-center justify-center px-8 py-3 font-semibold text-gray-800 bg-gray-100 rounded-lg shadow-lg hover:bg-gray-200 transition-transform w-full sm:w-auto"
                 >
                   <GraduationCap className="w-5 h-5 mr-2" />
                   Faculty Portal
@@ -145,4 +164,3 @@ export default function LandingPage() {
     </div>
   );
 }
-

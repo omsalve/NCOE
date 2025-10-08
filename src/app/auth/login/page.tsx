@@ -2,6 +2,7 @@
 
   import React, { useState } from 'react';
   import Link from 'next/link';
+  import Image from 'next/image';
   import { AtSign, Lock, LogIn, AlertCircle } from 'lucide-react';
   import { motion } from 'framer-motion';
   import { useRouter } from 'next/navigation';
@@ -57,7 +58,16 @@
         >
           <div className="bg-white rounded-xl shadow-lg p-8">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-blue-700">NESCOE Hub</h1>
+              <div className="flex items-center justify-center mb-4">
+                <Image 
+                  src="/images/COElogo.png" 
+                  alt="NESCOE Logo" 
+                  width={60} 
+                  height={60} 
+                  className="rounded-lg mr-4"
+                />
+                <h1 className="text-3xl font-bold text-blue-700">NESCOE Hub</h1>
+              </div>
               <p className="text-gray-500 mt-2">Welcome back! Please sign in.</p>
             </div>
 

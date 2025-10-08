@@ -88,6 +88,7 @@ src/
 - **Layout Components**: Nested layouts with `hub/layout.tsx` for authenticated pages
 - **Animation**: Framer Motion variants for consistent animations
 - **Forms**: Controlled components with error handling and loading states
+- **Logo Integration**: NESCOE logo (`/images/COElogo.png`) used consistently across header, sidebar, login, and landing pages
 
 ### API Design
 - RESTful API routes in `src/app/api/`
