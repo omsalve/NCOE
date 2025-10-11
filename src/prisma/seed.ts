@@ -12,7 +12,8 @@ async function main() {
   await prisma.submission.deleteMany();
   await prisma.attendance.deleteMany();
   await prisma.assignment.deleteMany();
-  await prisma.lecture.deleteMany();
+  // The 'Lecture' model is removed, so we clear 'Schedule' instead
+  await prisma.schedule.deleteMany(); 
   await prisma.course.deleteMany();
   await prisma.student.deleteMany();
   await prisma.faculty.deleteMany();
@@ -74,28 +75,11 @@ async function main() {
   });
 
 
-  // 5. Create Courses (FIXED LOGIC)
+  // 5. Create Courses
   console.log('Creating courses...');
-  // Create each course only once and assign it to a primary department.
   const coursesToCreate = [
-    // Group A Courses
-    { code: '24AF1000BS101', name: 'Engineering Mathematics – I', facultyId: profMath.id, departmentId: appliedSciencesDept.id },
-    { code: '24AF1CHEBS102', name: 'Engineering Chemistry', facultyId: profChem.id, departmentId: appliedSciencesDept.id },
-    { code: '24AF1CHEBS103L', name: 'Engineering Chemistry Lab', facultyId: profChem.id, departmentId: appliedSciencesDept.id },
-    { code: '24AF1EMES104', name: 'Engineering Mechanics', facultyId: profMath.id, departmentId: meDept.id },
-    { code: '24AF1EMES105L', name: 'Engineering Mechanics Lab', facultyId: profMath.id, departmentId: meDept.id },
     { code: '24AF1000ES106', name: 'Programming for Problem Solving', facultyId: profAhuja.id, departmentId: cseDept.id },
-    { code: '24AF1000ES107L', name: 'Programming for Problem Solving Lab', facultyId: profAhuja.id, departmentId: cseDept.id },
-    { code: '24AF1000VS108L', name: 'Workshop Practices', facultyId: profVerma.id, departmentId: meDept.id },
-    { code: '24AF1000VS109', name: 'Communication Skills', facultyId: profAhuja.id, departmentId: appliedSciencesDept.id },
-    { code: '24AF1000VS110L', name: 'Communication Skills Lab', facultyId: profAhuja.id, departmentId: appliedSciencesDept.id },
-
-    // Group B Courses (that are not in Group A)
-    { code: 'BSC102B', name: 'Engineering Physics', facultyId: profMath.id, departmentId: appliedSciencesDept.id },
-    { code: 'BSC103B', name: 'Engineering Physics Lab', facultyId: profMath.id, departmentId: appliedSciencesDept.id },
-    { code: 'ESC104B', name: 'Engineering Graphics', facultyId: profVerma.id, departmentId: meDept.id },
-    { code: 'ESC105B', name: 'Engineering Graphics Lab', facultyId: profVerma.id, departmentId: meDept.id },
-    { code: 'ESC106B', name: 'Basic Electrical and Electronics Engineering', facultyId: profVerma.id, departmentId: eeDept.id },
+    { code: '24AF1000BS101', name: 'Engineering Mathematics – I', facultyId: profMath.id, departmentId: appliedSciencesDept.id },
   ];
 
   for (const courseData of coursesToCreate) {
@@ -108,13 +92,9 @@ async function main() {
   console.log('--- LOGIN CREDENTIALS ---');
   console.log('Password for all users: password123');
   console.log(`Principal: principal@nescoe.com`);
-  console.log(`HOD (AI&DS): hod.aids@nescoe.com`);
   console.log(`HOD (CSE): hod.cse@nescoe.com`);
   console.log(`Professor (CSE): a.ahuja@nescoe.com`);
-  console.log(`Professor (AI&DS): v.verma@nescoe.com`);
   console.log(`Student (CSE): amit.s@nescoe.com`);
-  console.log(`Student (AI&DS): sunita.p@nescoe.com`);
-  console.log(`Student (ME): rajesh.g@nescoe.com`);
   console.log('-------------------------');
 
 }
@@ -127,4 +107,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-

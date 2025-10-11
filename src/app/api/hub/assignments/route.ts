@@ -101,6 +101,7 @@ export async function POST(req: Request) {
       },
       include: {
         course: true,
+        submissions: true, // <-- THIS IS THE FIX
       },
     });
 
