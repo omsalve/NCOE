@@ -2,9 +2,9 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import { motion } from 'framer-motion';
-import { User, FileText, CheckCircle } from 'lucide-react';
+import { User, FileText, CheckCircle, Save } from 'lucide-react';
 import Link from 'next/link';
 
 // Define the types for our data based on the API response
@@ -25,26 +25,63 @@ export default function AssignmentSubmissionsPage({ params }: { params: { assign
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [grades, setGrades] = useState<Record<number, string>>({});
+
+  const fetchSubmissions = async () => {
+    try {
+      const res = await fetch(`/api/hub/assignments/${params.assignmentId}/submissions`);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to fetch submissions');
+      }
+      const data = await res.json();
+      setSubmissions(data.submissions);
+      // Initialize grades state
+      const initialGrades = data.submissions.reduce((acc: Record<number, string>, sub: Submission) => {
+        acc[sub.id] = sub.grade?.toString() || '';
+        return acc;
+      }, {});
+      setGrades(initialGrades);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchSubmissions = async () => {
-      try {
-        const res = await fetch(`/api/hub/assignments/${params.assignmentId}/submissions`);
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || 'Failed to fetch submissions');
-        }
-        const data = await res.json();
-        setSubmissions(data.submissions);
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchSubmissions();
   }, [params.assignmentId]);
+
+  const handleGradeChange = (submissionId: number, value: string) => {
+    setGrades(prev => ({ ...prev, [submissionId]: value }));
+  };
+
+  const handleSaveGrade = async (submissionId: number) => {
+    const grade = parseFloat(grades[submissionId]);
+    if (isNaN(grade)) {
+      alert('Please enter a valid number for the grade.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/hub/submissions/${submissionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grade }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to save grade');
+      }
+      // Re-fetch submissions to show updated grade status
+      fetchSubmissions(); 
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'An error occurred while saving.');
+    }
+  };
+
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -82,33 +119,44 @@ export default function AssignmentSubmissionsPage({ params }: { params: { assign
               <motion.li
                 key={submission.id}
                 variants={itemVariants}
-                className="p-4 flex items-center justify-between"
+                className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between"
               >
-                <div className="flex items-center">
-                  <User className="w-6 h-6 mr-4 text-gray-400" />
+                <div className="flex items-center mb-4 sm:mb-0">
+                  <User className="w-6 h-6 mr-4 text-gray-400 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-gray-800">{submission.student.user.name}</p>
                     <p className="text-sm text-gray-500">
                       Submitted on: {new Date(submission.submittedAt).toLocaleDateString()}
                     </p>
+                     <Link href={submission.fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center text-sm text-blue-600 hover:underline mt-1">
+                        <FileText className="w-4 h-4 mr-1" />
+                        View Submission
+                    </Link>
                   </div>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <Link href={submission.fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center text-blue-600 hover:underline">
-                    <FileText className="w-4 h-4 mr-1" />
-                    View Submission
-                  </Link>
-                  <div className="flex items-center">
-                    {submission.grade ? (
-                      <span className="flex items-center text-sm font-semibold text-green-600">
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        Graded: {submission.grade}
-                      </span>
+                <div className="flex items-center space-x-2 w-full sm:w-auto">
+                    <input
+                        type="number"
+                        placeholder="Grade"
+                        value={grades[submission.id] || ''}
+                        onChange={(e) => handleGradeChange(submission.id, e.target.value)}
+                        className="w-24 px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        disabled={submission.grade !== null}
+                    />
+                    {submission.grade === null ? (
+                        <button 
+                            onClick={() => handleSaveGrade(submission.id)}
+                            className="p-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                            aria-label="Save grade"
+                        >
+                            <Save className="w-4 h-4" />
+                        </button>
                     ) : (
-                      // Placeholder for grading input
-                      <span className="text-sm text-gray-500">Not Graded</span>
+                         <span className="flex items-center text-sm font-semibold text-green-600">
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Graded: {submission.grade}
+                        </span>
                     )}
-                  </div>
                 </div>
               </motion.li>
             ))

@@ -1,3 +1,5 @@
+// src/app/hub/components/sidebar.tsx
+
 "use client";
 
 import React from 'react';
