@@ -48,7 +48,6 @@ export default function AdminDepartmentDetailPage({ params }: { params: { depart
     <motion.div className="max-w-7xl mx-auto" initial="hidden" animate="visible" variants={containerVariants}>
       <motion.h1 variants={itemVariants} className="text-3xl font-bold mb-8 text-gray-900">{departmentName}</motion.h1>
       
-      {/* Tab Navigation */}
       <motion.div variants={itemVariants} className="mb-6 flex border-b border-gray-200">
         <button onClick={() => setActiveTab('students')} className={`px-6 py-3 text-sm font-semibold flex items-center transition-colors ${activeTab === 'students' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-blue-600'}`}>
           <User className="w-5 h-5 mr-2" /> Students ({students.length})
@@ -58,11 +57,15 @@ export default function AdminDepartmentDetailPage({ params }: { params: { depart
         </button>
       </motion.div>
 
-      {/* Content */}
       <AnimatePresence mode="wait">
         <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
           {activeTab === 'students' && (
-            <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" variants={containerVariants}>
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
               {students.map(user => (
                 <Link key={user.id} href={`/hub/department/students/${user.id}`}>
                   <motion.div variants={itemVariants} className="bg-white p-4 rounded-xl shadow-md border hover:shadow-lg hover:border-blue-500 cursor-pointer">
@@ -74,7 +77,12 @@ export default function AdminDepartmentDetailPage({ params }: { params: { depart
             </motion.div>
           )}
           {activeTab === 'faculty' && (
-            <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" variants={containerVariants}>
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
               {faculty.map(user => (
                 <motion.div key={user.id} variants={itemVariants} className="bg-white p-4 rounded-xl shadow-md border">
                   <p className="font-semibold">{user.name}</p>

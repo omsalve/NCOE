@@ -33,14 +33,21 @@ model Department {
 }
 
 model Student {
-  id          Int          @id
-  user        User         @relation(fields: [id], references: [id])
+  id          Int     @id
+  user        User    @relation(fields: [id], references: [id])
   rollNo      String
   year        Int
   section     String
+  
+  // Add these new fields
+  mobile      String?
+  cetPercentile Float?
+  jeePercentile Float?
+
   attendance  Attendance[]
   submissions Submission[]
 }
+
 
 model Faculty {
   id          Int          @id

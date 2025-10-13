@@ -33,8 +33,15 @@ export async function GET(
       orderBy: { name: 'asc' },
     });
 
+    // FIX: Include both PROFESSOR and HOD roles in the faculty list
     const faculty = await prisma.user.findMany({
-      where: { departmentId: departmentId, role: Role.PROFESSOR },
+      where: { 
+        departmentId: departmentId,
+        OR: [
+            { role: Role.PROFESSOR },
+            { role: Role.HOD }
+        ]
+      },
       include: { faculty: true },
       orderBy: { name: 'asc' },
     });
