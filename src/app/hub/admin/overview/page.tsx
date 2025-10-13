@@ -1,10 +1,9 @@
-// src/app/hub/admin/overview/page.tsx
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, GraduationCap, Briefcase, Percent, Send } from 'lucide-react';
 import Link from 'next/link';
+import { Users, GraduationCap, Briefcase, Percent, Send } from 'lucide-react';
 import { SendNotificationModal } from '../../components/SendNotificationModal';
 
 // Define types for our data
@@ -19,10 +18,11 @@ interface Department {
   name: string;
   hod: string;
   studentCount: number;
+  averageAttendance: number;
 }
 
 const StatCard = ({ icon, label, value, color }: { icon: React.ReactNode, label: string, value: string | number, color: string }) => (
-  <div className={`p-6 rounded-xl shadow-lg flex items-center space-x-4 ${color}`}>
+  <div className={`p-6 rounded-xl shadow-lg flex items-center space-x-4 ${color} hover:shadow-xl transition-shadow duration-200 cursor-pointer`}>
     {icon}
     <div>
       <p className="text-3xl font-bold">{value}</p>
@@ -86,56 +86,59 @@ export default function AdminOverviewPage() {
             </button>
         </motion.div>
 
-        {/* Stat Cards */}
+        {/* Clickable Stat Cards */}
         <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <Link href="/hub/admin/students">
             <StatCard 
                 icon={<Users className="w-10 h-10"/>} 
                 label="Total Students" 
                 value={stats?.studentCount ?? 0}
                 color="bg-blue-500 text-white"
             />
+          </Link>
+          <Link href="/hub/admin/faculty">
             <StatCard 
                 icon={<GraduationCap className="w-10 h-10"/>} 
                 label="Total Faculty" 
                 value={stats?.facultyCount ?? 0}
                 color="bg-green-500 text-white"
             />
-            <StatCard 
-                icon={<Briefcase className="w-10 h-10"/>} 
-                label="Departments" 
-                value={stats?.departmentCount ?? 0}
-                color="bg-yellow-500 text-white"
-            />
-            <StatCard 
-                icon={<Percent className="w-10 h-10"/>} 
-                label="Overall Attendance" 
-                value={`${stats?.overallAttendance ?? 0}%`}
-                color="bg-purple-500 text-white"
-            />
+          </Link>
+           <StatCard 
+              icon={<Briefcase className="w-10 h-10"/>} 
+              label="Departments" 
+              value={stats?.departmentCount ?? 0}
+              color="bg-yellow-500 text-white"
+          />
         </motion.div>
 
-        {/* Department List */}
+        {/* Department Performance Table */}
         <motion.div variants={itemVariants}>
-          <h2 className="text-2xl font-bold mb-4 text-gray-800">Departments</h2>
+          <h2 className="text-2xl font-bold mb-4 text-gray-800">Department Performance</h2>
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <ul className="divide-y divide-gray-200">
+            <div className="grid grid-cols-4 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-200 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <div className="col-span-2">Department</div>
+              <div className="text-center">Students</div>
+              <div className="text-center">Avg. Attendance</div>
+            </div>
+            <div className="divide-y divide-gray-200">
               {departments.map(dept => (
-                <li key={dept.id}>
-                  <Link href={`/hub/admin/departments/${dept.id}`} className="block hover:bg-gray-50">
-                    <div className="p-4 flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-lg text-gray-800">{dept.name}</p>
-                        <p className="text-sm text-gray-500">HOD: {dept.hod}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-gray-800">{dept.studentCount}</p>
-                        <p className="text-sm text-gray-500">Students</p>
-                      </div>
-                    </div>
-                  </Link>
-                </li>
+                <Link href={`/hub/admin/departments/${dept.id}`} key={dept.id} className="grid grid-cols-4 gap-4 px-6 py-4 items-center hover:bg-gray-50 transition-colors duration-150">
+                  <div className="col-span-2">
+                    <p className="font-semibold text-lg text-gray-800">{dept.name}</p>
+                    <p className="text-sm text-gray-500">HOD: {dept.hod}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="font-semibold text-gray-800">{dept.studentCount}</p>
+                  </div>
+                  <div className="text-center">
+                     <p className={`font-bold text-lg ${dept.averageAttendance > 75 ? 'text-green-600' : 'text-yellow-600'}`}>
+                        {dept.averageAttendance}%
+                     </p>
+                  </div>
+                </Link>
               ))}
-            </ul>
+            </div>
           </div>
         </motion.div>
       </motion.div>

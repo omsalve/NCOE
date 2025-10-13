@@ -8,25 +8,22 @@ import { Role } from '@prisma/client';
 export async function GET() {
   const session = await getSession();
 
-  // SECURE THIS ENDPOINT: Only the Principal can access it.
   if (!session || session.role !== Role.PRINCIPAL) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
   }
 
   try {
-    // 1. Get aggregate counts
-    const [studentCount, facultyCount, departmentCount, totalLectures] = await Promise.all([
+    // 1. Get aggregate college-wide stats
+    const [studentCount, facultyCount, departmentCount, totalLectures, presentLectures] = await Promise.all([
       prisma.user.count({ where: { role: Role.STUDENT } }),
-      prisma.user.count({ where: { role: Role.PROFESSOR } }),
+      prisma.user.count({ where: { role: { in: [Role.PROFESSOR, Role.HOD] } } }),
       prisma.department.count(),
-      prisma.lecture.count({ where: { dateTime: { lte: new Date() } } }) // Count only past lectures
+      prisma.lecture.count({ where: { dateTime: { lte: new Date() } } }),
+      prisma.attendance.count({ where: { status: true, lecture: { dateTime: { lte: new Date() } } } })
     ]);
-
-    // 2. Calculate overall attendance
-    const presentLectures = await prisma.attendance.count({ where: { status: true } });
     const overallAttendance = totalLectures > 0 ? Math.round((presentLectures / totalLectures) * 100) : 0;
-    
-    // 3. Get details for each department
+
+    // 2. Get details for each department with attendance calculation
     const departments = await prisma.department.findMany({
       include: {
         _count: {
@@ -37,18 +34,35 @@ export async function GET() {
         users: {
           where: { role: Role.HOD },
           select: { name: true }
+        },
+        lectures: { // Include lectures to calculate attendance
+          where: { dateTime: { lte: new Date() } },
+          include: {
+            _count: {
+              select: { attendances: { where: { status: true } } }
+            }
+          }
         }
       },
       orderBy: { name: 'asc' }
     });
 
-    const departmentDetails = departments.map(dept => ({
-      id: dept.id,
-      name: dept.name,
-      hod: dept.users.find(u => u.name)?.name || 'N/A',
-      studentCount: dept._count.users
-    }));
+    const departmentDetails = departments.map(dept => {
+      const totalDepartmentLectures = dept.lectures.length;
+      const totalPresentRecords = dept.lectures.reduce((sum, lecture) => sum + lecture._count.attendances, 0);
+      
+      const averageAttendance = totalDepartmentLectures > 0 
+        ? Math.round((totalPresentRecords / (totalDepartmentLectures * dept._count.users)) * 100) 
+        : 0;
 
+      return {
+        id: dept.id,
+        name: dept.name,
+        hod: dept.users.find(u => u.name)?.name || 'N/A',
+        studentCount: dept._count.users,
+        averageAttendance: isNaN(averageAttendance) ? 0 : averageAttendance, // Ensure no NaN values
+      };
+    });
 
     return NextResponse.json({
       stats: {
