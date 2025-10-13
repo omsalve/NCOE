@@ -18,7 +18,7 @@ export async function PUT(
   const session = await getSession();
   const submissionId = parseInt(params.submissionId);
 
-  // 1. Authentication & Authorization Checks
+  // 1. Authentication & Basic Authorization Checks
   if (!session) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
@@ -26,7 +26,11 @@ export async function PUT(
     return NextResponse.json({ error: 'Invalid submission ID' }, { status: 400 });
   }
   
-  const isAuthorizedToGrade = session.role === Role.PROFESSOR || session.role === Role.HOD;
+  const isAuthorizedToGrade =
+    session.role === Role.PROFESSOR ||
+    session.role === Role.HOD ||
+    session.role === Role.PRINCIPAL;
+
   if (!isAuthorizedToGrade) {
     return NextResponse.json({ error: 'Not authorized to grade submissions' }, { status: 403 });
   }
@@ -36,7 +40,7 @@ export async function PUT(
     const body = await req.json();
     const { grade } = gradeSchema.parse(body);
 
-    // 3. Verify that the teacher is authorized for this specific submission's course
+    // 3. Verify that the user is authorized for this specific submission
     const submission = await prisma.submission.findUnique({
       where: { id: submissionId },
       include: { assignment: true },
@@ -46,27 +50,30 @@ export async function PUT(
       return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
     }
 
-    // A professor must be the one who created the assignment, or an HOD must be in the same department
+    // 4. Detailed Authorization Logic
     const isOwner = session.userId === submission.assignment.facultyId;
     const isHOD = session.role === Role.HOD && session.departmentId === submission.assignment.departmentId;
+    const isPrincipal = session.role === Role.PRINCIPAL;
 
-    if (!isOwner && !isHOD) {
-        return NextResponse.json({ error: 'You are not authorized to grade this submission' }, { status: 403 });
+    if (!isOwner && !isHOD && !isPrincipal) {
+      return NextResponse.json({ error: 'You are not authorized to grade this submission' }, { status: 403 });
     }
 
-    // 4. Update the grade in the database
+    // 5. Update the grade in the database
     const updatedSubmission = await prisma.submission.update({
       where: { id: submissionId },
       data: { grade },
     });
 
-    return NextResponse.json({ submission: updatedSubmission });
-
+    // 6. Respond with success
+    return NextResponse.json({ message: 'Grade updated successfully', submission: updatedSubmission });
   } catch (error) {
+    console.error('Error grading submission:', error);
+
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.issues }, { status: 400 });
+      return NextResponse.json({ error: error.issues[0].message }, { status: 400 });
     }
-    console.error('Failed to update grade:', error);
-    return NextResponse.json({ error: 'Failed to update grade' }, { status: 500 });
+
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
