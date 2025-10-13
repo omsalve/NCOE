@@ -12,8 +12,7 @@ async function main() {
   await prisma.submission.deleteMany();
   await prisma.attendance.deleteMany();
   await prisma.assignment.deleteMany();
-  // The 'Lecture' model is removed, so we clear 'Schedule' instead
-  await prisma.schedule.deleteMany(); 
+  await prisma.lecture.deleteMany(); // Reverted from schedule
   await prisma.course.deleteMany();
   await prisma.student.deleteMany();
   await prisma.faculty.deleteMany();
@@ -23,6 +22,7 @@ async function main() {
   const password = 'password123';
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  // ... (The rest of your seed file remains the same)
   // 2. Create Departments
   console.log('Creating departments...');
   const aidsDept = await prisma.department.create({ data: { name: 'AI & Data Science' } });

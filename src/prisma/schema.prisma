@@ -1,154 +1,150 @@
-  // schema.prisma
+// schema.prisma
 
-  generator client {
-    provider = "prisma-client-js"
-  }
+generator client {
+  provider = "prisma-client-js"
+}
 
-  datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
-  }
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
-  model User {
-    id                Int            @id @default(autoincrement())
-    name              String
-    email             String         @unique
-    passwordHash      String
-    role              Role
-    department        Department?    @relation(fields: [departmentId], references: [id])
-    departmentId      Int?
-    student           Student?
-    faculty           Faculty?
-    notificationsSent Notification[]
-  }
+model User {
+  id                Int            @id @default(autoincrement())
+  name              String
+  email             String         @unique
+  passwordHash      String
+  role              Role
+  department        Department?    @relation(fields: [departmentId], references: [id])
+  departmentId      Int?
+  student           Student?
+  faculty           Faculty?
+  notificationsSent Notification[]
+}
 
-  model Department {
-    id           Int          @id @default(autoincrement())
-    name         String
-    users        User[]
-    events       Event[]
-    assignments  Assignment[]
-    courses      Course[]
-    schedules    Schedule[]
-  }
+model Department {
+  id           Int          @id @default(autoincrement())
+  name         String
+  users        User[]
+  events       Event[]
+  assignments  Assignment[]
+  courses      Course[]
+  lectures     Lecture[] // Reverted from schedules
+}
 
-  model Student {
-    id          Int          @id
-    user        User         @relation(fields: [id], references: [id])
-    rollNo      String
-    year        Int
-    section     String
-    attendance  Attendance[]
-    submissions Submission[]
-  }
+model Student {
+  id          Int          @id
+  user        User         @relation(fields: [id], references: [id])
+  rollNo      String
+  year        Int
+  section     String
+  attendance  Attendance[]
+  submissions Submission[]
+}
 
-  model Faculty {
-    id          Int          @id
-    user        User         @relation(fields: [id], references: [id])
-    designation String
-    assignments Assignment[]
-    courses     Course[]
-    schedules   Schedule[]   // Changed from 'lectures'
-  }
+model Faculty {
+  id          Int          @id
+  user        User         @relation(fields: [id], references: [id])
+  designation String
+  assignments Assignment[]
+  courses     Course[]
+  lectures    Lecture[] // Reverted from schedules
+}
 
-  model Course {
-    id           Int          @id @default(autoincrement())
-    code         String       @unique
-    name         String
-    faculty      Faculty?     @relation(fields: [facultyId], references: [id])
-    facultyId    Int?
-    department   Department   @relation(fields: [departmentId], references: [id])
-    departmentId Int
-    assignments  Assignment[]
-    schedules    Schedule[]   // Changed from 'lectures'
-  }
+model Course {
+  id           Int          @id @default(autoincrement())
+  code         String       @unique
+  name         String
+  faculty      Faculty?     @relation(fields: [facultyId], references: [id])
+  facultyId    Int?
+  department   Department   @relation(fields: [departmentId], references: [id])
+  departmentId Int
+  assignments  Assignment[]
+  lectures     Lecture[] // Reverted from schedules
+}
 
-  // NEW MODEL: Replaces the old Lecture model for recurring weekly schedules
-  model Schedule {
-    id           Int      @id @default(autoincrement())
-    dayOfWeek    Int // 1 for Monday, 2 for Tuesday, ..., 7 for Sunday
-    startTime    String   // e.g., "09:00" in 24-hour format
-    duration     Int      // Duration in minutes
-    location     String?
+// REVERTED: Back to the original Lecture model
+model Lecture {
+  id           Int          @id @default(autoincrement())
+  course       Course       @relation(fields: [courseId], references: [id])
+  courseId     Int
+  faculty      Faculty      @relation(fields: [facultyId], references: [id])
+  facultyId    Int
+  department   Department   @relation(fields: [departmentId], references: [id])
+  departmentId Int
+  dateTime     DateTime
+  duration     Int          // Duration in minutes
+  location     String?
+  attendances  Attendance[]
+}
 
-    course       Course     @relation(fields: [courseId], references: [id])
-    courseId     Int
-    faculty      Faculty    @relation(fields: [facultyId], references: [id])
-    facultyId    Int
-    department   Department @relation(fields: [departmentId], references: [id])
-    departmentId Int
+// REVERTED: Attendance now links to Lecture
+model Attendance {
+  id        Int      @id @default(autoincrement())
+  student   Student  @relation(fields: [studentId], references: [id])
+  studentId Int
+  lecture   Lecture  @relation(fields: [lectureId], references: [id])
+  lectureId Int
+  status    Boolean  // true for present, false for absent
 
-    attendances  Attendance[]
-  }
+  @@unique([studentId, lectureId])
+}
 
-  // UPDATED MODEL: Links to Schedule instead of Lecture
-  model Attendance {
-    id         Int      @id @default(autoincrement())
-    student    Student  @relation(fields: [studentId], references: [id])
-    studentId  Int
-    schedule   Schedule @relation(fields: [scheduleId], references: [id])
-    scheduleId Int
-    date       DateTime @db.Date // The specific date attendance was taken for
-    status     Boolean  // true for present, false for absent
+model Assignment {
+  id           Int          @id @default(autoincrement())
+  title        String
+  description  String
+  dueDate      DateTime
+  faculty      Faculty      @relation(fields: [facultyId], references: [id])
+  facultyId    Int
+  department   Department   @relation(fields: [departmentId], references: [id])
+  departmentId Int
+  submissions  Submission[]
+  course       Course       @relation(fields: [courseId], references: [id])
+  courseId     Int
+}
 
-    @@unique([studentId, scheduleId, date])
-  }
+model Submission {
+  id           Int        @id @default(autoincrement())
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  assignmentId Int
+  student      Student    @relation(fields: [studentId], references: [id])
+  studentId    Int
+  fileUrl      String
+  submittedAt  DateTime   @default(now())
+  grade        Int?
+}
 
-  model Assignment {
-    id           Int          @id @default(autoincrement())
-    title        String
-    description  String
-    dueDate      DateTime
-    faculty      Faculty      @relation(fields: [facultyId], references: [id])
-    facultyId    Int
-    department   Department   @relation(fields: [departmentId], references: [id])
-    departmentId Int
-    submissions  Submission[]
-    course       Course       @relation(fields: [courseId], references: [id])
-    courseId     Int
-  }
+model Event {
+  id           Int         @id @default(autoincrement())
+  title        String
+  description  String
+  type         EventType // HOLIDAY, EXAM, EVENT
+  date         DateTime
+  department   Department? @relation(fields: [departmentId], references: [id])
+  departmentId Int?
+}
 
-  model Submission {
-    id           Int        @id @default(autoincrement())
-    assignment   Assignment @relation(fields: [assignmentId], references: [id])
-    assignmentId Int
-    student      Student    @relation(fields: [studentId], references: [id])
-    studentId    Int
-    fileUrl      String
-    submittedAt  DateTime   @default(now())
-    grade        Int?
-  }
+model Notification {
+  id            Int      @id @default(autoincrement())
+  title         String
+  message       String
+  sender        User     @relation(fields: [senderId], references: [id])
+  senderId      Int
+  recipientRole Role?
+  departmentId  Int?
+  createdAt     DateTime @default(now())
+}
 
-  model Event {
-    id           Int         @id @default(autoincrement())
-    title        String
-    description  String
-    type         EventType // HOLIDAY, EXAM, EVENT
-    date         DateTime
-    department   Department? @relation(fields: [departmentId], references: [id])
-    departmentId Int?
-  }
+enum Role {
+  STUDENT
+  PROFESSOR
+  HOD
+  PRINCIPAL
+}
 
-  model Notification {
-    id            Int      @id @default(autoincrement())
-    title         String
-    message       String
-    sender        User     @relation(fields: [senderId], references: [id])
-    senderId      Int
-    recipientRole Role?
-    departmentId  Int?
-    createdAt     DateTime @default(now())
-  }
-
-  enum Role {
-    STUDENT
-    PROFESSOR
-    HOD
-    PRINCIPAL
-  }
-
-  enum EventType {
-    HOLIDAY
-    EXAM
-    EVENT
-  }
+enum EventType {
+  HOLIDAY
+  EXAM
+  EVENT
+}
