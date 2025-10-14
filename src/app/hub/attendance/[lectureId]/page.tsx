@@ -5,9 +5,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { User, Check } from 'lucide-react';
+import { User, Check, Download } from 'lucide-react'; // 1. Import Download icon
 
-// Define types for our data
+// ... (Keep existing interface definitions)
 interface Student {
   id: number;
   rollNo: string;
@@ -26,7 +26,8 @@ interface LectureDetails {
   students: Student[];
 }
 
-export default function TakeAttendancePage({ params }: { params: Promise<{ lectureId: string }> }) {
+
+export default function TakeAttendancePage({ params }: { params: { lectureId: string } }) {
   const router = useRouter();
   const [lecture, setLecture] = useState<LectureDetails | null>(null);
   const [attendance, setAttendance] = useState<Record<number, boolean>>({});
@@ -35,15 +36,15 @@ export default function TakeAttendancePage({ params }: { params: Promise<{ lectu
   const [error, setError] = useState<string | null>(null);
   const [lectureId, setLectureId] = useState<string | null>(null);
 
+  // ... (Keep existing useEffect hooks)
   useEffect(() => {
-    const initializeParams = async () => {
-      const resolvedParams = await params;
-      setLectureId(resolvedParams.lectureId);
-    };
-    initializeParams();
+    // This effect remains the same
+    const resolvedParams = params;
+    setLectureId(resolvedParams.lectureId);
   }, [params]);
 
   useEffect(() => {
+    // This effect remains the same
     if (!lectureId) return;
     
     const fetchLectureDetails = async () => {
@@ -52,7 +53,6 @@ export default function TakeAttendancePage({ params }: { params: Promise<{ lectu
         if (!res.ok) throw new Error('Failed to fetch lecture details');
         const data = await res.json();
         setLecture(data.lecture);
-        // Initialize all students as present by default
         const initialAttendance = data.lecture.students.reduce((acc: Record<number, boolean>, student: Student) => {
           acc[student.id] = true;
           return acc;
@@ -67,6 +67,8 @@ export default function TakeAttendancePage({ params }: { params: Promise<{ lectu
     fetchLectureDetails();
   }, [lectureId]);
 
+
+  // ... (Keep existing handleToggleAttendance and handleSelectAll functions)
   const handleToggleAttendance = (studentId: number) => {
     setAttendance(prev => ({ ...prev, [studentId]: !prev[studentId] }));
   };
@@ -81,6 +83,7 @@ export default function TakeAttendancePage({ params }: { params: Promise<{ lectu
 
 
   const handleSubmit = async () => {
+    // This function remains the same
     setIsSaving(true);
     setError(null);
     try {
@@ -100,7 +103,7 @@ export default function TakeAttendancePage({ params }: { params: Promise<{ lectu
             throw new Error(data.error || 'Failed to save attendance');
         }
         
-        router.push('/hub/schedule'); // Or a success page
+        router.push('/hub/schedule');
         router.refresh();
 
     } catch (err: unknown) {
@@ -108,6 +111,13 @@ export default function TakeAttendancePage({ params }: { params: Promise<{ lectu
     } finally {
         setIsSaving(false);
     }
+  };
+  
+  // 2. Add the handleDownload function
+  const handleDownload = async () => {
+    if (!lectureId) return;
+    // We can simply redirect to the download URL, the browser will handle the rest.
+    window.location.href = `/api/hub/attendance/${lectureId}/download`;
   };
 
 
@@ -123,8 +133,16 @@ export default function TakeAttendancePage({ params }: { params: Promise<{ lectu
           {new Date(lecture.dateTime).toLocaleString()}
         </p>
       </div>
-
+      
+      {/* 3. Add the Download button */}
       <div className="flex justify-end gap-2 mb-4">
+        <button 
+          onClick={handleDownload}
+          className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 flex items-center"
+        >
+            <Download className="w-4 h-4 mr-2"/>
+            Download Report
+        </button>
         <button onClick={() => handleSelectAll(true)} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Mark All Present</button>
         <button onClick={() => handleSelectAll(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Mark All Absent</button>
       </div>
