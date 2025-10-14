@@ -5,9 +5,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { User, Check, Download } from 'lucide-react'; // 1. Import Download icon
+import { User, Check, Download } from 'lucide-react';
 
-// ... (Keep existing interface definitions)
+// (Interface definitions remain the same)
 interface Student {
   id: number;
   rollNo: string;
@@ -36,12 +36,12 @@ export default function TakeAttendancePage({ params }: { params: { lectureId: st
   const [error, setError] = useState<string | null>(null);
   const [lectureId, setLectureId] = useState<string | null>(null);
 
-  // ... (Keep existing useEffect hooks)
   useEffect(() => {
     // This effect remains the same
     const resolvedParams = params;
     setLectureId(resolvedParams.lectureId);
   }, [params]);
+
 
   useEffect(() => {
     // This effect remains the same
@@ -67,8 +67,7 @@ export default function TakeAttendancePage({ params }: { params: { lectureId: st
     fetchLectureDetails();
   }, [lectureId]);
 
-
-  // ... (Keep existing handleToggleAttendance and handleSelectAll functions)
+  // (handleToggleAttendance and handleSelectAll functions remain the same)
   const handleToggleAttendance = (studentId: number) => {
     setAttendance(prev => ({ ...prev, [studentId]: !prev[studentId] }));
   };
@@ -80,7 +79,6 @@ export default function TakeAttendancePage({ params }: { params: { lectureId: st
     });
     setAttendance(newAttendance);
   };
-
 
   const handleSubmit = async () => {
     // This function remains the same
@@ -112,13 +110,14 @@ export default function TakeAttendancePage({ params }: { params: { lectureId: st
         setIsSaving(false);
     }
   };
-  
-  // 2. Add the handleDownload function
+
+  // --- THIS IS THE FIX ---
   const handleDownload = async () => {
     if (!lectureId) return;
-    // We can simply redirect to the download URL, the browser will handle the rest.
-    window.location.href = `/api/hub/attendance/${lectureId}/download`;
+    // Correct the URL from /attendance/ to /lectures/
+    window.location.href = `/api/hub/lectures/${lectureId}/download`;
   };
+  // --- END OF FIX ---
 
 
   if (isLoading) return <div className="p-8">Loading student list...</div>;
@@ -134,7 +133,6 @@ export default function TakeAttendancePage({ params }: { params: { lectureId: st
         </p>
       </div>
       
-      {/* 3. Add the Download button */}
       <div className="flex justify-end gap-2 mb-4">
         <button 
           onClick={handleDownload}
