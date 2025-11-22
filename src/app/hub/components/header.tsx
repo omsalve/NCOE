@@ -1,64 +1,58 @@
 // src/app/hub/components/header.tsx
+
 "use client";
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { Bell, UserCircle, Menu } from "lucide-react";
-import { motion } from "framer-motion";
-import ThemeToggle from "../components/ThemeToggle";
+import React from 'react';
+import { useRouter } from 'next/navigation'; // 1. Import the router
+import Image from 'next/image';
+import { Bell, UserCircle, Menu } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-export const Header = ({
-  userName,
-  toggleSidebar,
-}: {
+export const Header = ({ 
+  userName, 
+  toggleSidebar 
+}: { 
   userName: string;
-  toggleSidebar: () => void;
+  toggleSidebar: () => void; 
 }) => {
-  const router = useRouter();
+  const router = useRouter(); // 2. Initialize the router
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/auth/login");
-    router.refresh();
+    await fetch('/api/auth/logout', { method: 'POST' });
+    
+    // 3. Use the router to push to the login page
+    router.push('/auth/login');
+    router.refresh(); // This ensures the server state is cleared
   };
 
   return (
-    <header className="h-16 bg-white dark:bg-[#0a0a0a] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6 shrink-0 z-10 transition-colors duration-300">
-      {/* Sidebar toggle button (mobile only) */}
-      <button
-        onClick={toggleSidebar}
-        className="md:hidden text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0 z-10">
+      <button 
+        onClick={toggleSidebar} 
+        className="md:hidden text-gray-600 hover:text-blue-600"
         aria-label="Open sidebar"
       >
         <Menu className="h-6 w-6" />
       </button>
 
-      {/* Welcome text */}
       <div className="hidden md:flex items-center space-x-3">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Welcome back, {userName}!
-        </h2>
+        <h2 className="text-black text-lg font-semibold">Welcome back, {userName}!</h2>
       </div>
-
-      {/* Right side buttons */}
+      
       <div className="flex items-center space-x-4">
-        <ThemeToggle />
-
-        <button className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+        <button className="text-gray-600 hover:text-blue-600">
           <Bell className="h-6 w-6" />
         </button>
-
         <motion.button
           onClick={handleLogout}
-          className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400"
+          className="text-sm font-medium text-gray-600 hover:text-red-600"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
           Logout
         </motion.button>
-
-        <UserCircle className="h-8 w-8 text-gray-500 dark:text-gray-400" />
+        <UserCircle className="h-8 w-8 text-gray-500" />
       </div>
     </header>
   );
-};
+}
