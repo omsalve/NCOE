@@ -46,7 +46,7 @@ export const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ is
     setSuccess(null);
 
     try {
-      const payload: any = { title, message };
+      const payload: { title: string; message: string; recipientRole?: Role; departmentId?: number } = { title, message };
       if (recipientRole !== 'ALL') {
         payload.recipientRole = recipientRole;
       }

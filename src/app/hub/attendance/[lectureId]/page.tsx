@@ -27,7 +27,7 @@ interface LectureDetails {
 }
 
 
-export default function TakeAttendancePage({ params }: { params: { lectureId: string } }) {
+export default function TakeAttendancePage({ params }: { params: Promise<{ lectureId: string }> }) {
   const router = useRouter();
   const [lecture, setLecture] = useState<LectureDetails | null>(null);
   const [attendance, setAttendance] = useState<Record<number, boolean>>({});
@@ -37,9 +37,7 @@ export default function TakeAttendancePage({ params }: { params: { lectureId: st
   const [lectureId, setLectureId] = useState<string | null>(null);
 
   useEffect(() => {
-    // This effect remains the same
-    const resolvedParams = params;
-    setLectureId(resolvedParams.lectureId);
+    params.then(p => setLectureId(p.lectureId));
   }, [params]);
 
 

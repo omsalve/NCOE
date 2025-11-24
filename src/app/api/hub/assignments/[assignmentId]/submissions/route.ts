@@ -7,10 +7,11 @@ import { Role } from '@prisma/client';
 
 export async function GET(
   req: Request,
-  { params }: { params: { assignmentId: string } }
+  { params }: { params: Promise<{ assignmentId: string }> }
 ) {
   const session = await getSession();
-  const assignmentId = parseInt(params.assignmentId);
+  const { assignmentId: assignmentIdParam } = await params;
+  const assignmentId = parseInt(assignmentIdParam);
 
   // 1. Check for a valid session and assignmentId
   if (!session) {

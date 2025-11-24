@@ -5,10 +5,11 @@ import { Role } from '@prisma/client';
 
 export async function GET(
   req: Request,
-  { params }: { params: { departmentId: string } }
+  { params }: { params: Promise<{ departmentId: string }> }
 ) {
   const session = await getSession();
-  const departmentId = parseInt(params.departmentId);
+  const { departmentId: departmentIdParam } = await params;
+  const departmentId = parseInt(departmentIdParam);
 
   // Authorization: Only Principal can access this
   if (!session || session.role !== Role.PRINCIPAL) {

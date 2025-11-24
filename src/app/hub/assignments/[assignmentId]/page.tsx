@@ -21,15 +21,21 @@ interface Submission {
 }
 
 // Main component for viewing assignment submissions
-export default function AssignmentSubmissionsPage({ params }: { params: { assignmentId: string } }) {
+export default function AssignmentSubmissionsPage({ params }: { params: Promise<{ assignmentId: string }> }) {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [grades, setGrades] = useState<Record<number, string>>({});
+  const [assignmentId, setAssignmentId] = useState<string | null>(null);
+
+  useEffect(() => {
+    params.then(p => setAssignmentId(p.assignmentId));
+  }, [params]);
 
   const fetchSubmissions = async () => {
+    if (!assignmentId) return;
     try {
-      const res = await fetch(`/api/hub/assignments/${params.assignmentId}/submissions`);
+      const res = await fetch(`/api/hub/assignments/${assignmentId}/submissions`);
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || 'Failed to fetch submissions');
@@ -51,7 +57,7 @@ export default function AssignmentSubmissionsPage({ params }: { params: { assign
 
   useEffect(() => {
     fetchSubmissions();
-  }, [params.assignmentId]);
+  }, [assignmentId]);
 
   const handleGradeChange = (submissionId: number, value: string) => {
     setGrades(prev => ({ ...prev, [submissionId]: value }));

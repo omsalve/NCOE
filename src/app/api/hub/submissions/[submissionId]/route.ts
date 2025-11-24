@@ -13,10 +13,11 @@ const gradeSchema = z.object({
 
 export async function PUT(
   req: Request,
-  { params }: { params: { submissionId: string } }
+  { params }: { params: Promise<{ submissionId: string }> }
 ) {
   const session = await getSession();
-  const submissionId = parseInt(params.submissionId);
+  const { submissionId: submissionIdParam } = await params;
+  const submissionId = parseInt(submissionIdParam);
 
   // 1. Authentication & Basic Authorization Checks
   if (!session) {

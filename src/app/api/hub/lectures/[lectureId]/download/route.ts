@@ -8,10 +8,11 @@ import * as XLSX from 'xlsx';
 
 export async function GET(
   req: Request,
-  { params }: { params: { lectureId: string } }
+  { params }: { params: Promise<{ lectureId: string }> }
 ) {
   const session = await getSession();
-  const lectureId = parseInt(params.lectureId, 10);
+  const { lectureId: lectureIdParam } = await params;
+  const lectureId = parseInt(lectureIdParam, 10);
 
   // --- 1. Authorization Check ---
   const validRoles: Role[] = [Role.PROFESSOR, Role.HOD, Role.PRINCIPAL];

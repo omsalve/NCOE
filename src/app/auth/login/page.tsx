@@ -60,7 +60,7 @@
             <div className="text-center mb-8">
               <div className="flex items-center justify-center mb-4">
                 <Image 
-                  src="/images/COElogo.png" 
+                  src="/images/NESCOEmulti2grad-removebg-preview.png" 
                   alt="NESCOE Logo" 
                   width={60} 
                   height={60} 

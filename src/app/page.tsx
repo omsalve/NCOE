@@ -49,7 +49,7 @@ export default function LandingPage() {
         <div className="container mx-auto flex justify-between items-center h-16 px-6">
           <div className="flex items-center space-x-3">
             <Image 
-              src="/images/COElogo.png" 
+              src="/images/NESCOEmulti2grad-removebg-preview.png" 
               alt="NESCOE Logo" 
               width={40} 
               height={40} 
@@ -81,7 +81,7 @@ export default function LandingPage() {
           >
             <motion.div variants={itemVariants} className="flex items-center justify-center mb-6">
               <Image 
-                src="/images/COElogo.png" 
+                src="/images/NESCOEmulti2grad-removebg-preview.png" 
                 alt="NESCOE Logo" 
                 width={400} 
                 height={400} 

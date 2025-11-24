@@ -12,18 +12,24 @@ type FacultyWithDetails = UserType & { faculty: Faculty | null };
 const itemVariants = { hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } };
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } };
 
-export default function AdminDepartmentDetailPage({ params }: { params: { departmentId: string } }) {
+export default function AdminDepartmentDetailPage({ params }: { params: Promise<{ departmentId: string }> }) {
   const [departmentName, setDepartmentName] = useState<string>('');
   const [students, setStudents] = useState<StudentWithDetails[]>([]);
   const [faculty, setFaculty] = useState<FacultyWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'students' | 'faculty'>('students');
+  const [departmentId, setDepartmentId] = useState<string | null>(null);
 
   useEffect(() => {
+    params.then(p => setDepartmentId(p.departmentId));
+  }, [params]);
+
+  useEffect(() => {
+    if (!departmentId) return;
     const fetchData = async () => {
       try {
-        const res = await fetch(`/api/hub/admin/departments/${params.departmentId}`);
+        const res = await fetch(`/api/hub/admin/departments/${departmentId}`);
         if (!res.ok) {
           const data = await res.json();
           throw new Error(data.error || 'Failed to fetch department data.');
@@ -39,7 +45,7 @@ export default function AdminDepartmentDetailPage({ params }: { params: { depart
       }
     };
     fetchData();
-  }, [params.departmentId]);
+  }, [departmentId]);
 
   if (isLoading) return <div className="p-8 text-center">Loading department details...</div>;
   if (error) return <div className="p-8 text-center text-red-500">Error: {error}</div>;

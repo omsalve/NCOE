@@ -7,10 +7,11 @@ import { Role } from '@prisma/client';
 
 export async function GET(
   req: Request,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   const session = await getSession();
-  const courseId = parseInt(params.courseId);
+  const { courseId: courseIdParam } = await params;
+  const courseId = parseInt(courseIdParam);
 
   // 1. Authentication & Basic Validation
   if (!session) {

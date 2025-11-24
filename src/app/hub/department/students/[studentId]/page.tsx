@@ -8,6 +8,26 @@ import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
 // Define complex types for the fetched data
+interface Attendance {
+  status: boolean;
+  lecture: {
+    course: {
+      code: string;
+      name: string;
+    };
+  };
+}
+
+interface Submission {
+  grade: number | null;
+  assignment: {
+    course: {
+      code: string;
+      name: string;
+    };
+  };
+}
+
 interface StudentProfile {
   student: {
     id: number;
@@ -16,8 +36,8 @@ interface StudentProfile {
     student: { rollNo: string; year: number; section: string } | null;
     department: { name: string } | null;
   };
-  attendance: any[];
-  submissions: any[];
+  attendance: Attendance[];
+  submissions: Submission[];
 }
 
 // Helper to calculate and group stats
@@ -50,16 +70,22 @@ const processAcademicData = (data: StudentProfile) => {
 };
 
 
-export default function StudentDetailPage({ params }: { params: { studentId: string } }) {
+export default function StudentDetailPage({ params }: { params: Promise<{ studentId: string }> }) {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [courseStats, setCourseStats] = useState<ReturnType<typeof processAcademicData>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [studentId, setStudentId] = useState<string | null>(null);
 
   useEffect(() => {
+    params.then(p => setStudentId(p.studentId));
+  }, [params]);
+
+  useEffect(() => {
+    if (!studentId) return;
     const fetchData = async () => {
       try {
-        const res = await fetch(`/api/hub/department/students/${params.studentId}`);
+        const res = await fetch(`/api/hub/department/students/${studentId}`);
         if (!res.ok) {
           const data = await res.json();
           throw new Error(data.error || 'Failed to fetch student data.');
@@ -74,7 +100,7 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
       }
     };
     fetchData();
-  }, [params.studentId]);
+  }, [studentId]);
 
   if (isLoading) return <div className="p-8 text-center">Loading student profile...</div>;
   if (error) return <div className="p-8 text-center text-red-500">Error: {error}</div>;

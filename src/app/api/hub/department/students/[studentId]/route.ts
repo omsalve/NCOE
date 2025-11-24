@@ -7,10 +7,11 @@ import { Role } from '@prisma/client';
 
 export async function GET(
   req: Request,
-  { params }: { params: { studentId: string } }
+  { params }: { params: Promise<{ studentId: string }> }
 ) {
   const session = await getSession();
-  const studentId = parseInt(params.studentId);
+  const { studentId: studentIdParam } = await params;
+  const studentId = parseInt(studentIdParam);
 
   // 1. Authentication & Authorization
   // MODIFICATION: Allow PRINCIPAL to access this route.

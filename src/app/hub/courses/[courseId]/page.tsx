@@ -11,16 +11,22 @@ import { Student, Course, User as UserType } from '@prisma/client';
 type StudentWithUser = Student & { user: { name: string } };
 type CourseWithDetails = Course & { department: { name: string } };
 
-export default function CourseRosterPage({ params }: { params: { courseId: string } }) {
+export default function CourseRosterPage({ params }: { params: Promise<{ courseId: string }> }) {
   const [course, setCourse] = useState<CourseWithDetails | null>(null);
   const [students, setStudents] = useState<StudentWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [courseId, setCourseId] = useState<string | null>(null);
 
   useEffect(() => {
+    params.then(p => setCourseId(p.courseId));
+  }, [params]);
+
+  useEffect(() => {
+    if (!courseId) return;
     const fetchRoster = async () => {
       try {
-        const res = await fetch(`/api/hub/courses/${params.courseId}/students`);
+        const res = await fetch(`/api/hub/courses/${courseId}/students`);
         if (!res.ok) {
           const data = await res.json();
           throw new Error(data.error || 'Failed to fetch roster');
@@ -35,7 +41,7 @@ export default function CourseRosterPage({ params }: { params: { courseId: strin
       }
     };
     fetchRoster();
-  }, [params.courseId]);
+  }, [courseId]);
 
   const containerVariants = { hidden: {}, visible: { transition: { staggerChildren: 0.05 } } };
   const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };

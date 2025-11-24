@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "NESCOE Hub",
   description: "Official Hub for NESCOE Students and Faculty",
   icons: {
-    icon: '/images/COElogo.png',
+    icon: '/images/NESCOEmulti2grad-removebg-preview.png',
   },
 };
 

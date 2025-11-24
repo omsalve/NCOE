@@ -72,7 +72,7 @@ export const Sidebar = ({ isOpen, toggle, userRole }: { isOpen: boolean; toggle:
         <aside className="w-64 bg-white border-r border-gray-200 flex-col hidden md:flex">
             <div className="h-24 flex items-center justify-center border-b border-gray-200 p-4">
                 <Image 
-                    src="/images/COElogo.png" 
+                    src="/images/NESCOEmulti2grad-removebg-preview.png" 
                     alt="NESCOE Logo" 
                     width={80} 
                     height={80} 
@@ -112,7 +112,7 @@ export const Sidebar = ({ isOpen, toggle, userRole }: { isOpen: boolean; toggle:
             >
                 <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
                     <Image 
-                        src="/images/COElogo.png" 
+                        src="/images/NESCOEmulti2grad-removebg-preview.png" 
                         alt="NESCOE Logo" 
                         width={48} 
                         height={48} 

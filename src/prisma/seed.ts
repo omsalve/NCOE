@@ -7,11 +7,20 @@ import Papa from 'papaparse';
 
 const prisma = new PrismaClient();
 
+interface StudentCSVRecord {
+  'Course Name': string;
+  'Candidate Name': string;
+  'Application ID': string;
+  'Mobile No'?: string;
+  'CET Percentile'?: string;
+  'JEE Percentile'?: string;
+}
+
 // Function to parse the CSV file using Papaparse
-const parseCSV = (filePath: string): Promise<any[]> => {
+const parseCSV = (filePath: string): Promise<StudentCSVRecord[]> => {
     const csvFile = fs.readFileSync(filePath, 'utf-8');
     return new Promise(resolve => {
-        Papa.parse(csvFile, {
+        Papa.parse<StudentCSVRecord>(csvFile, {
             header: true,
             skipEmptyLines: true,
             complete: (results) => {
@@ -61,7 +70,7 @@ async function main() {
 
   // 3. Create Departments
   console.log('Creating departments...');
-  const departmentMap: { [key: string]: any } = {
+  const departmentMap: Record<string, { id: number; name: string }> = {
     'Computer Science and Engineering': await prisma.department.create({ data: { name: 'Computer Science and Engineering' } }),
     'Computer Engineering': await prisma.department.create({ data: { name: 'Computer Engineering' } }),
     'Information Technology': await prisma.department.create({ data: { name: 'Information Technology' } }),
@@ -73,17 +82,27 @@ async function main() {
     'Applied Sciences': await prisma.department.create({ data: { name: 'Applied Sciences' } }),
   };
   const appSciDeptId = departmentMap['Applied Sciences'].id;
+  const cseDeptId = departmentMap['Computer Science and Engineering'].id;
 
   // 4. Create Admins, HODs, and Faculty Users
   console.log('Creating admin, HODs, and faculty users...');
   await prisma.user.create({ data: { name: 'Dr. M.S. Kimmatkar', email: 'principal@nescoe.com', passwordHash: hashedFacultyPassword, role: Role.PRINCIPAL } });
 
   // HODs
-  await prisma.user.create({ data: { name: 'Dr. Priya Sharma', email: 'hod.cse@nescoe.com', passwordHash: hashedFacultyPassword, role: Role.HOD, departmentId: departmentMap['Computer Science and Engineering'].id, faculty: { create: { designation: 'HOD' } } } });
+  const cseHod = await prisma.user.create({ 
+    data: { 
+        name: 'Dr. Priya Sharma', 
+        email: 'hod.cse@nescoe.com', 
+        passwordHash: hashedFacultyPassword, 
+        role: Role.HOD, 
+        departmentId: cseDeptId, 
+        faculty: { create: { designation: 'HOD' } } 
+    } 
+  });
   // Add other HODs as needed...
 
   // Create all first-year faculty members from the new list
-  const facultyMap: { [key: string]: any } = {
+  const facultyMap: Record<string, { id: number; name: string; email: string }> = {
     'Dr. D. F. Shastrakar': await prisma.user.create({ data: { name: 'Dr. D. F. Shastrakar', email: 'd.shastrakar@nescoe.com', passwordHash: hashedFacultyPassword, role: Role.PROFESSOR, departmentId: appSciDeptId, faculty: { create: { designation: 'Professor' } } } }),
     'Dr. Ajay Bhoir': await prisma.user.create({ data: { name: 'Dr. Ajay Bhoir', email: 'a.bhoir@nescoe.com', passwordHash: hashedFacultyPassword, role: Role.PROFESSOR, departmentId: appSciDeptId, faculty: { create: { designation: 'Professor' } } } }),
     'Er. Bhagyashri Thele': await prisma.user.create({ data: { name: 'Er. Bhagyashri Thele', email: 'b.thele@nescoe.com', passwordHash: hashedFacultyPassword, role: Role.PROFESSOR, departmentId: appSciDeptId, faculty: { create: { designation: 'Professor' } } } }),
@@ -117,7 +136,7 @@ async function main() {
 
   // 6. Create First-Year Courses with correct faculty and codes
   console.log('Creating first-year courses...');
-  const courseMap: { [key: string]: any } = {
+  const courseMap: Record<string, { id: number; name: string; code: string; departmentId: number; facultyId: number | null }> = {
     'Engg. Mathematics-I': await prisma.course.create({ data: { code: '24AF1000BS101', name: 'Engineering Mathematics – I', departmentId: appSciDeptId, facultyId: facultyMap['Dr. D. F. Shastrakar'].id } }),
     'Engg. Chemistry': await prisma.course.create({ data: { code: '24AF1CHEBS102', name: 'Engineering Chemistry', departmentId: appSciDeptId, facultyId: facultyMap['Dr. Ajay Bhoir'].id } }),
     'Engg. Chemistry Lab': await prisma.course.create({ data: { code: '24AF1CHEBS103L', name: 'Engineering Chemistry Lab', departmentId: appSciDeptId, facultyId: facultyMap['Dr. Ajay Bhoir'].id } }),
@@ -130,6 +149,27 @@ async function main() {
     'Communication Skills Lab': await prisma.course.create({ data: { code: '24AF1000VS110L', name: 'Communication Skills Lab', departmentId: appSciDeptId, facultyId: facultyMap['Mrs. Deepali Y. Patil'].id } }),
     'CC': await prisma.course.create({ data: { code: '24AF1000CC111', name: 'CC (Co-curricular)', departmentId: appSciDeptId, facultyId: facultyMap['Dr. M.S. Kimmatkar'].id } }),
   };
+
+  // --- NEW: Create CSE Courses ---
+  console.log('Creating CSE courses...');
+  
+  await prisma.course.create({
+    data: {
+      code: 'CS201', 
+      name: 'Data Structures & Algorithms',
+      departmentId: cseDeptId,
+      facultyId: cseHod.id, 
+    }
+  });
+
+  await prisma.course.create({
+    data: {
+      code: 'CS202', 
+      name: 'Database Management Systems',
+      departmentId: cseDeptId,
+      facultyId: cseHod.id, 
+    }
+  });
   
   // 7. Create Lectures (from previous timetable - can be adjusted)
   console.log('Creating lectures...');
@@ -154,7 +194,7 @@ async function main() {
 
   for (const lecture of lecturesToCreate) {
     const course = courseMap[lecture.courseName];
-    if (course) {
+    if (course && course.facultyId !== null) {
       await prisma.lecture.create({
         data: {
           courseId: course.id,

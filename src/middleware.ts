@@ -1,13 +1,32 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getSession } from './lib/session';
+import { jwtVerify } from 'jose';
 
 // Force the middleware to run on the Node.js runtime
 export const runtime = 'nodejs';
 
 // This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
-  const session = await getSession();
+  // Get the session token from cookies
+  const token = request.cookies.get('session')?.value;
+  let session = null;
+
+  // Verify the token if it exists
+  if (token) {
+    try {
+      const JWT_SECRET = process.env.JWT_SECRET;
+      if (JWT_SECRET) {
+        const secret = new TextEncoder().encode(JWT_SECRET);
+        const { payload } = await jwtVerify(token, secret, {
+          algorithms: ['HS256'],
+        });
+        session = payload;
+      }
+    } catch (err) {
+      // Token is invalid, treat as no session
+      session = null;
+    }
+  }
 
   // If the user is trying to access the hub but has no session,
   // redirect them to the login page.
